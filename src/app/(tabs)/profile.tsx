@@ -143,7 +143,9 @@ export default function ProfileScreen() {
   const oneWord = about.oneWordDescribeMe.trim() || 'Roommate';
   const heroTags = [`${user.age}`, user.gender, oneWord];
   const heroDescription = about.expressYourself.trim() || user.description;
-  const openQuiz = (section: 'about' | 'hobbies' | 'lifestyle' | 'likes' | 'dislikes') =>
+  const openQuiz = (
+    section: 'about' | 'education' | 'hobbies' | 'lifestyle' | 'likes' | 'dislikes',
+  ) =>
     router.push({
       pathname: '/create-account',
       params: { section },
@@ -235,6 +237,15 @@ export default function ProfileScreen() {
               </Text>
             </View>
           ) : null}
+        </ProfileSection>
+
+        <ProfileSection title="Education" colors={colors} onEdit={() => openQuiz('education')}>
+          <View style={styles.tileGrid}>
+            <ProfileTile label="School" value={user.education.school} colors={colors} wide />
+            <ProfileTile label="District" value={user.education.district} colors={colors} />
+            <ProfileTile label="Building" value={user.education.building} colors={colors} />
+            <ProfileTile label="Year" value={user.education.year} colors={colors} />
+          </View>
         </ProfileSection>
 
         <ProfileSection title="Hobbies" colors={colors} onEdit={() => openQuiz('hobbies')}>

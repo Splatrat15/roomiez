@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { MessagesProvider } from '@/data/MessagesProvider';
 import { UserProvider } from '@/data/UserProvider';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { layout, reset } from '@/theme/main';
@@ -24,6 +25,8 @@ function RootShell() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="roommate/[id]" />
             <Stack.Screen name="message/[id]" />
+            <Stack.Screen name="message-details/[id]" />
+            <Stack.Screen name="new-group" />
             <Stack.Screen name="settings" />
             <Stack.Screen name="privacy" />
             <Stack.Screen name="terms" />
@@ -39,7 +42,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <UserProvider>
-        <RootShell />
+        <MessagesProvider>
+          <RootShell />
+        </MessagesProvider>
       </UserProvider>
     </ThemeProvider>
   );

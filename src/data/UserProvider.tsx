@@ -9,6 +9,12 @@ export type UserAbout = typeof defaultAbout;
 export type UserProfile = typeof seedUser;
 
 type QuizPayload = {
+  education: {
+    school: string;
+    district: string;
+    building: string;
+    year: string;
+  };
   hobbies: string[];
   about: UserAbout;
   roommateLikes: string[];
@@ -51,6 +57,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
               ...saved.about?.allergies,
             },
           },
+          education: {
+            ...current.education,
+            ...saved.education,
+          },
           hobbies: saved.hobbies ?? current.hobbies,
           roommateLikes: saved.roommateLikes ?? current.roommateLikes,
           roommateDislikes: saved.roommateDislikes ?? current.roommateDislikes,
@@ -74,6 +84,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     setUser((current) => {
       const next: UserProfile = {
         ...current,
+        education: payload.education,
         hobbies: payload.hobbies,
         about: payload.about,
         roommateLikes: payload.roommateLikes,

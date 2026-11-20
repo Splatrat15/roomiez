@@ -3,10 +3,18 @@
  * Photo: assets/images/robert.jpg
  *
  * about = Part 1 questionnaire answers (visible)
+ * education = school / district / building (visible)
  * hobbies = Part 1 (visible)
  * roommateLikes / roommateDislikes = Part 2 matching tags
  * roommateLikesPrivate / roommateDislikesPrivate = per-list visibility
  */
+export const defaultEducation = {
+  school: 'ASU Tempe',
+  district: 'Barrett',
+  building: 'Barrett',
+  year: 'Freshman',
+};
+
 export const defaultAbout = {
   cleanliness: 3,
   roommateCloseness: 'Acquaintances',
@@ -40,6 +48,7 @@ export const currentUser = {
     likes: 48,
     chats: 3,
   },
+  education: { ...defaultEducation },
   hobbies: ['Coffee runs', 'Gym', 'Studying'],
   about: { ...defaultAbout },
   roommateLikes: ['Clean & tidy', 'Good communicator', 'Handles chores fairly'],
@@ -51,6 +60,12 @@ export const currentUser = {
 
 export function createEmptyQuizDraft() {
   return {
+    education: {
+      school: '',
+      district: '',
+      building: '',
+      year: '',
+    },
     hobbies: /** @type {string[]} */ ([]),
     about: {
       ...defaultAbout,

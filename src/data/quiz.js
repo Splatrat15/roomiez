@@ -3,11 +3,14 @@
 /** Profile pencil targets → quiz landing spots. */
 export const QUIZ_SECTIONS = {
   about: 'about',
+  education: 'education',
   hobbies: 'hobbies',
   lifestyle: 'lifestyle',
   likes: 'likes',
   dislikes: 'dislikes',
 };
+
+export const YEAR_OPTIONS = ['Freshman', 'Sophomore', 'Junior', 'Senior'];
 
 export const HOBBY_OPTIONS = [
   'Cooking',

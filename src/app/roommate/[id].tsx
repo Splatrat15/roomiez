@@ -74,7 +74,7 @@ export default function RoommateDetailScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const nameSize = useFluidSize(30);
-  const metaSize = useFluidSize(15);
+  const tagSize = useFluidSize(12);
   const bodySize = useFluidSize(15);
 
   const top = Platform.OS === 'web' ? 12 : insets.top;
@@ -103,6 +103,9 @@ export default function RoommateDetailScreen() {
   const allergyLine = about.allergies.has
     ? about.allergies.details || 'Yes'
     : 'No allergies listed';
+  const oneWord = about.oneWordDescribeMe.trim() || 'Roommate';
+  const heroTags = [`${profile.age}`, profile.gender, oneWord];
+  const heroDescription = about.expressYourself.trim() || profile.description;
   const showLikes = !profile.roommateLikesPrivate && profile.roommateLikes.length > 0;
   const showDislikes = !profile.roommateDislikesPrivate && profile.roommateDislikes.length > 0;
 
@@ -137,10 +140,25 @@ export default function RoommateDetailScreen() {
           />
           <View style={styles.heroCopy}>
             <Text style={[styles.heroName, { fontSize: nameSize, color: overlayText }]}>
-              {profile.name.split(' ')[0]}, {profile.age}
+              {profile.name.split(' ')[0]}
             </Text>
-            <Text style={[styles.heroMeta, { fontSize: metaSize, color: overlayText }]}>
-              {profile.gender}
+            <View style={styles.heroTags}>
+              {heroTags.map((tag) => (
+                <View
+                  key={tag}
+                  style={[styles.heroTag, { backgroundColor: 'rgba(228, 227, 208, 0.22)' }]}
+                >
+                  <Text style={[styles.heroTagText, { fontSize: tagSize, color: overlayText }]}>
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text
+              style={[styles.heroDescription, { fontSize: bodySize, color: overlayText }]}
+              numberOfLines={3}
+            >
+              {heroDescription}
             </Text>
           </View>
         </View>
@@ -162,6 +180,15 @@ export default function RoommateDetailScreen() {
               </Text>
             </View>
           ) : null}
+        </Section>
+
+        <Section title="Education" colors={colors}>
+          <View style={styles.tileGrid}>
+            <Tile label="School" value={profile.education.school} colors={colors} wide />
+            <Tile label="District" value={profile.education.district} colors={colors} />
+            <Tile label="Building" value={profile.education.building} colors={colors} />
+            <Tile label="Year" value={profile.education.year} colors={colors} />
+          </View>
         </Section>
 
         <Section title="Hobbies" colors={colors}>
@@ -258,16 +285,33 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 16,
-    gap: 2,
+    gap: 10,
   },
   heroName: {
     ...reset,
     fontWeight: '700',
   },
-  heroMeta: {
+  heroTags: {
     ...reset,
-    fontWeight: '600',
-    opacity: 0.9,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  heroTag: {
+    ...reset,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  heroTagText: {
+    ...reset,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  heroDescription: {
+    ...reset,
+    lineHeight: 18,
+    opacity: 0.95,
   },
   sectionCard: {
     ...reset,

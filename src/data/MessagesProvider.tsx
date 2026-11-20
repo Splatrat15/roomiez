@@ -1,0 +1,173 @@
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+
+import { profiles } from '@/data/data';
+import {
+  formatPreview,
+  getLastMessage,
+  groupTitleFromNames,
+  seedConversations,
+} from '@/data/messages';
+
+export type ChatMessage = {
+  id: string;
+  sender: 'me' | 'them';
+  text: string;
+};
+
+export type Conversation = {
+  id: string;
+  profileId?: number;
+  isGroup?: boolean;
+  title?: string;
+  memberIds?: number[];
+  messages: ChatMessage[];
+  notes?: string;
+  blocked?: boolean;
+  reported?: boolean;
+};
+
+type MessagesContextValue = {
+  conversations: Conversation[];
+  getConversation: (id: string | undefined) => Conversation | undefined;
+  createGroupChat: (memberIds: number[], title?: string) => Conversation;
+  appendMessage: (conversationId: string, message: ChatMessage) => void;
+  setConversationNotes: (conversationId: string, notes: string) => void;
+  blockConversation: (conversationId: string) => void;
+  unblockConversation: (conversationId: string) => void;
+  reportConversation: (conversationId: string) => void;
+  deleteConversation: (conversationId: string) => void;
+};
+
+const MessagesContext = createContext<MessagesContextValue | null>(null);
+
+function cloneSeed(): Conversation[] {
+  return seedConversations.map((conversation) => ({
+    ...conversation,
+    notes: '',
+    blocked: false,
+    reported: false,
+    messages: conversation.messages.map((message) => ({
+      id: message.id,
+      sender: message.sender === 'me' ? 'me' : 'them',
+      text: message.text,
+    })),
+  }));
+}
+
+function updateConversation(
+  current: Conversation[],
+  conversationId: string,
+  updater: (conversation: Conversation) => Conversation,
+) {
+  return current.map((conversation) =>
+    String(conversation.id) === String(conversationId) ? updater(conversation) : conversation,
+  );
+}
+
+export function MessagesProvider({ children }: { children: ReactNode }) {
+  const [conversations, setConversations] = useState<Conversation[]>(() => cloneSeed());
+
+  const value = useMemo<MessagesContextValue>(
+    () => ({
+      conversations,
+      getConversation: (id) =>
+        conversations.find((conversation) => String(conversation.id) === String(id)),
+      createGroupChat: (memberIds, title) => {
+        const members = memberIds
+          .map((id) => profiles.find((person) => person.id === id))
+          .filter(Boolean);
+        const names = members.map((person) => person!.name.split(' ')[0] ?? person!.name);
+        const conversation: Conversation = {
+          id: `group-${Date.now()}`,
+          isGroup: true,
+          title: title?.trim() || groupTitleFromNames(names),
+          memberIds: [...memberIds],
+          notes: '',
+          blocked: false,
+          reported: false,
+          messages: [
+            {
+              id: `group-start-${Date.now()}`,
+              sender: 'them',
+              text: `Group created with ${names.join(', ')}.`,
+            },
+          ],
+        };
+
+        setConversations((current) => [conversation, ...current]);
+        return conversation;
+      },
+      appendMessage: (conversationId, message) => {
+        setConversations((current) => {
+          const index = current.findIndex(
+            (conversation) => String(conversation.id) === String(conversationId),
+          );
+          if (index < 0) {
+            return current;
+          }
+
+          if (current[index].blocked) {
+            return current;
+          }
+
+          const updated: Conversation = {
+            ...current[index],
+            messages: [...current[index].messages, message],
+          };
+
+          return [updated, ...current.filter((_, i) => i !== index)];
+        });
+      },
+      setConversationNotes: (conversationId, notes) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            notes,
+          })),
+        );
+      },
+      blockConversation: (conversationId) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            blocked: true,
+          })),
+        );
+      },
+      unblockConversation: (conversationId) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            blocked: false,
+          })),
+        );
+      },
+      reportConversation: (conversationId) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            reported: true,
+          })),
+        );
+      },
+      deleteConversation: (conversationId) => {
+        setConversations((current) =>
+          current.filter((conversation) => String(conversation.id) !== String(conversationId)),
+        );
+      },
+    }),
+    [conversations],
+  );
+
+  return <MessagesContext.Provider value={value}>{children}</MessagesContext.Provider>;
+}
+
+export function useMessages() {
+  const context = useContext(MessagesContext);
+  if (!context) {
+    throw new Error('useMessages must be used within MessagesProvider');
+  }
+  return context;
+}
+
+export { formatPreview, getLastMessage, groupTitleFromNames };
