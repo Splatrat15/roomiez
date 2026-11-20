@@ -4,7 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { profiles } from '@/data/data';
 import { conversations, formatPreview } from '@/data/messages';
-import { colors, reset, useFluidSize } from '@/theme/main';
+import { useTheme } from '@/theme/ThemeProvider';
+import { reset, useFluidSize } from '@/theme/main';
 
 function firstName(fullName: string) {
   return fullName.split(' ')[0] ?? fullName;
@@ -12,6 +13,7 @@ function firstName(fullName: string) {
 
 export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const titleSize = useFluidSize(28);
   const nameSize = useFluidSize(16);
   const previewSize = useFluidSize(13);
@@ -43,10 +45,11 @@ export default function MessagesScreen() {
           paddingTop: top,
           paddingLeft: left,
           paddingRight: right,
+          backgroundColor: colors.ivory,
         },
       ]}
     >
-      <Text style={[styles.title, { fontSize: titleSize }]}>Messages</Text>
+      <Text style={[styles.title, { fontSize: titleSize, color: colors.blueIris }]}>Messages</Text>
 
       <View style={styles.list}>
         {threads.map((thread) => {
@@ -67,12 +70,21 @@ export default function MessagesScreen() {
                 })
               }
             >
-              <Image source={profile.image} style={styles.avatar} />
+              <Image
+                source={profile.image}
+                style={[styles.avatar, { backgroundColor: colors.blueIris }]}
+              />
               <View style={styles.copy}>
-                <Text style={[styles.name, { fontSize: nameSize }]} numberOfLines={1}>
+                <Text
+                  style={[styles.name, { fontSize: nameSize, color: colors.blueIris }]}
+                  numberOfLines={1}
+                >
                   {profile.name}
                 </Text>
-                <Text style={[styles.preview, { fontSize: previewSize }]} numberOfLines={1}>
+                <Text
+                  style={[styles.preview, { fontSize: previewSize, color: colors.blueGrotto }]}
+                  numberOfLines={1}
+                >
                   {preview}
                 </Text>
               </View>
@@ -88,11 +100,9 @@ const styles = StyleSheet.create({
   screen: {
     ...reset,
     flex: 1,
-    backgroundColor: colors.ivory,
   },
   title: {
     ...reset,
-    color: colors.blueIris,
     fontWeight: '700',
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -115,7 +125,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.blueIris,
   },
   copy: {
     ...reset,
@@ -124,12 +133,10 @@ const styles = StyleSheet.create({
   },
   name: {
     ...reset,
-    color: colors.blueIris,
     fontWeight: '700',
   },
   preview: {
     ...reset,
-    color: colors.blueGrotto,
     opacity: 0.85,
   },
 });

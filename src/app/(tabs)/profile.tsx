@@ -5,10 +5,12 @@ import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { currentUser } from '@/data/user';
-import { colors, reset, useFluidSize } from '@/theme/main';
+import { useTheme } from '@/theme/ThemeProvider';
+import { reset, useFluidSize } from '@/theme/main';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
   const nameSize = useFluidSize(32);
   const metaSize = useFluidSize(15);
   const bodySize = useFluidSize(15);
@@ -19,6 +21,8 @@ export default function ProfileScreen() {
   const right = Platform.OS === 'web' ? 0 : insets.right;
   const bottom = Platform.OS === 'web' ? 16 : Math.max(insets.bottom, 8);
 
+  const overlayText = isDark ? '#E4E3D0' : colors.ivory;
+
   return (
     <View
       style={[
@@ -27,14 +31,15 @@ export default function ProfileScreen() {
           paddingTop: top,
           paddingLeft: left,
           paddingRight: right,
+          backgroundColor: colors.ivory,
         },
       ]}
     >
       <View style={styles.topBar}>
-        <Text style={styles.brand}>roomiez</Text>
+        <Text style={[styles.brand, { color: colors.blueGrotto }]}>roomiez</Text>
         <Pressable
           onPress={() => router.push('/settings')}
-          style={styles.settingsButton}
+          style={[styles.settingsButton, { backgroundColor: colors.blueIris }]}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="Open settings"
@@ -48,40 +53,57 @@ export default function ProfileScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: bottom + 12 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.hero}>
+        <View style={[styles.hero, { backgroundColor: colors.blueIris }]}>
           <Image source={currentUser.image} style={styles.heroImage} resizeMode="cover" />
           <LinearGradient
-            colors={['transparent', 'rgba(80, 79, 128, 0.15)', 'rgba(80, 79, 128, 0.92)']}
+            colors={['transparent', 'rgba(80, 79, 128, 0.15)', colors.gradientEnd]}
             locations={[0.45, 0.7, 1]}
             style={styles.heroFade}
           />
           <View style={styles.heroCopy}>
-            <Text style={[styles.heroName, { fontSize: nameSize }]}>
+            <Text style={[styles.heroName, { fontSize: nameSize, color: overlayText }]}>
               {currentUser.name.split(' ')[0]}, {currentUser.age}
             </Text>
-            <Text style={[styles.heroMeta, { fontSize: metaSize }]}>{currentUser.gender}</Text>
+            <Text style={[styles.heroMeta, { fontSize: metaSize, color: overlayText }]}>
+              {currentUser.gender}
+            </Text>
           </View>
         </View>
 
         <View style={styles.about}>
-          <Text style={[styles.sectionLabel, { fontSize: sectionSize }]}>About me</Text>
-          <Text style={[styles.bio, { fontSize: bodySize }]}>{currentUser.description}</Text>
+          <Text style={[styles.sectionLabel, { fontSize: sectionSize, color: colors.blueGrotto }]}>
+            About me
+          </Text>
+          <Text style={[styles.bio, { fontSize: bodySize, color: colors.blueIris }]}>
+            {currentUser.description}
+          </Text>
         </View>
 
         <View style={styles.chips}>
-          <View style={styles.chip}>
-            <Text style={styles.chipText}>{currentUser.stats.matches} matches</Text>
+          <View style={[styles.chip, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.chipText, { color: colors.blueIris }]}>
+              {currentUser.stats.matches} matches
+            </Text>
           </View>
-          <View style={styles.chip}>
-            <Text style={styles.chipText}>{currentUser.stats.likes} likes</Text>
+          <View style={[styles.chip, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.chipText, { color: colors.blueIris }]}>
+              {currentUser.stats.likes} likes
+            </Text>
           </View>
-          <View style={styles.chip}>
-            <Text style={styles.chipText}>{currentUser.stats.chats} chats</Text>
+          <View style={[styles.chip, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.chipText, { color: colors.blueIris }]}>
+              {currentUser.stats.chats} chats
+            </Text>
           </View>
         </View>
 
-        <Pressable style={styles.editButton} onPress={() => {}}>
-          <Text style={styles.editLabel}>Edit profile</Text>
+        <Pressable
+          style={[styles.editButton, { backgroundColor: colors.roseQuartz }]}
+          onPress={() => {}}
+        >
+          <Text style={[styles.editLabel, { color: isDark ? '#14141C' : colors.ivory }]}>
+            Edit profile
+          </Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -92,7 +114,6 @@ const styles = StyleSheet.create({
   screen: {
     ...reset,
     flex: 1,
-    backgroundColor: colors.ivory,
   },
   topBar: {
     ...reset,
@@ -105,7 +126,6 @@ const styles = StyleSheet.create({
   },
   brand: {
     ...reset,
-    color: colors.blueGrotto,
     fontWeight: '700',
     letterSpacing: 2,
     fontSize: 16,
@@ -117,7 +137,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.blueIris,
   },
   scroll: {
     ...reset,
@@ -134,7 +153,6 @@ const styles = StyleSheet.create({
     aspectRatio: 3 / 4,
     overflow: 'hidden',
     borderRadius: 18,
-    backgroundColor: colors.blueIris,
   },
   heroImage: {
     ...reset,
@@ -154,12 +172,10 @@ const styles = StyleSheet.create({
   },
   heroName: {
     ...reset,
-    color: colors.ivory,
     fontWeight: '700',
   },
   heroMeta: {
     ...reset,
-    color: colors.ivory,
     fontWeight: '600',
     opacity: 0.9,
   },
@@ -169,14 +185,12 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     ...reset,
-    color: colors.blueGrotto,
     fontWeight: '700',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   bio: {
     ...reset,
-    color: colors.blueIris,
     lineHeight: 22,
   },
   chips: {
@@ -190,11 +204,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: '#D8D4C8',
   },
   chipText: {
     ...reset,
-    color: colors.blueIris,
     fontWeight: '600',
     fontSize: 13,
   },
@@ -203,13 +215,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingVertical: 12,
     borderRadius: 999,
-    backgroundColor: colors.roseQuartz,
     alignItems: 'center',
     justifyContent: 'center',
   },
   editLabel: {
     ...reset,
-    color: colors.ivory,
     fontWeight: '700',
     fontSize: 15,
   },

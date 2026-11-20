@@ -2,7 +2,8 @@ import { ReactNode } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, reset, useFluidSize } from '@/theme/main';
+import { useTheme } from '@/theme/ThemeProvider';
+import { reset, useFluidSize } from '@/theme/main';
 
 type ScreenProps = {
   title: string;
@@ -11,10 +12,10 @@ type ScreenProps = {
 
 export function Screen({ title, children }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const brandSize = useFluidSize(18);
   const titleSize = useFluidSize(36);
 
-  // Native uses insets. Web safe area is handled in +html.tsx CSS.
   const top = Platform.OS === 'web' ? 0 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
   const right = Platform.OS === 'web' ? 0 : insets.right;
@@ -27,11 +28,12 @@ export function Screen({ title, children }: ScreenProps) {
           paddingTop: top,
           paddingLeft: left,
           paddingRight: right,
+          backgroundColor: colors.ivory,
         },
       ]}
     >
-      <Text style={[styles.brand, { fontSize: brandSize }]}>roomiez</Text>
-      <Text style={[styles.title, { fontSize: titleSize }]}>{title}</Text>
+      <Text style={[styles.brand, { fontSize: brandSize, color: colors.blueGrotto }]}>roomiez</Text>
+      <Text style={[styles.title, { fontSize: titleSize, color: colors.blueIris }]}>{title}</Text>
       {children}
     </View>
   );
@@ -43,11 +45,9 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.ivory,
   },
   brand: {
     ...reset,
-    color: colors.blueGrotto,
     fontWeight: '700',
     letterSpacing: 2,
     textTransform: 'lowercase',
@@ -56,7 +56,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...reset,
-    color: colors.blueIris,
     fontWeight: '700',
     letterSpacing: 2,
     backgroundColor: 'transparent',

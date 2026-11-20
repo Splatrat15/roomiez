@@ -6,7 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SwipeCard, type SwipeProfile } from '@/components/SwipeCard';
 import { SwipeTutorialOverlay } from '@/components/SwipeTutorialOverlay';
 import { profiles } from '@/data/data';
-import { colors, reset, useFluidSize } from '@/theme/main';
+import { useTheme } from '@/theme/ThemeProvider';
+import { reset, useFluidSize } from '@/theme/main';
 
 /** Survives tab switches. Resets when the app reloads. */
 let swipeTutorialSeenThisSession = false;
@@ -22,6 +23,7 @@ function shuffleProfiles(list: SwipeProfile[]) {
 
 export default function SwipeScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [deck] = useState(() => shuffleProfiles(profiles as SwipeProfile[]));
   const [index, setIndex] = useState(0);
   const [showTutorial, setShowTutorial] = useState(!swipeTutorialSeenThisSession);
@@ -44,6 +46,7 @@ export default function SwipeScreen() {
           paddingTop: top,
           paddingLeft: left,
           paddingRight: right,
+          backgroundColor: colors.ivory,
         },
       ]}
     >
@@ -52,16 +55,20 @@ export default function SwipeScreen() {
           <Pressable
             onPress={() => setIndex((current) => Math.max(0, current - 1))}
             hitSlop={10}
-            style={styles.undoButton}
+            style={[styles.undoButton, { backgroundColor: colors.blueGrotto }]}
             accessibilityRole="button"
             accessibilityLabel="Undo last swipe"
           >
-            <Text style={[styles.undoLabel, { fontSize: undoSize }]}>Undo</Text>
+            <Text style={[styles.undoLabel, { fontSize: undoSize, color: colors.ivory }]}>
+              Undo
+            </Text>
           </Pressable>
         ) : (
           <View style={styles.undoPlaceholder} />
         )}
-        <Text style={[styles.brand, { fontSize: titleSize }]}>roomiez</Text>
+        <Text style={[styles.brand, { fontSize: titleSize, color: colors.blueGrotto }]}>
+          roomiez
+        </Text>
         <View style={styles.undoPlaceholder} />
       </View>
 
@@ -79,17 +86,23 @@ export default function SwipeScreen() {
         />
       ) : (
         <View style={styles.empty}>
-          <Text style={[styles.emptyTitle, { fontSize: emptySize }]}>No more roommates</Text>
-          <Text style={styles.emptyBody}>You have swiped through everyone for now.</Text>
+          <Text style={[styles.emptyTitle, { fontSize: emptySize, color: colors.blueIris }]}>
+            No more roommates
+          </Text>
+          <Text style={[styles.emptyBody, { color: colors.blueGrotto }]}>
+            You have swiped through everyone for now.
+          </Text>
           {canUndo ? (
             <Pressable
               onPress={() => setIndex((current) => Math.max(0, current - 1))}
               hitSlop={10}
-              style={styles.emptyUndo}
+              style={[styles.emptyUndo, { backgroundColor: colors.blueGrotto }]}
               accessibilityRole="button"
               accessibilityLabel="Undo last swipe"
             >
-              <Text style={[styles.undoLabel, { fontSize: undoSize }]}>Undo</Text>
+              <Text style={[styles.undoLabel, { fontSize: undoSize, color: colors.ivory }]}>
+                Undo
+              </Text>
             </Pressable>
           ) : null}
         </View>
@@ -111,7 +124,6 @@ const styles = StyleSheet.create({
   screen: {
     ...reset,
     flex: 1,
-    backgroundColor: colors.ivory,
   },
   topBar: {
     ...reset,
@@ -130,7 +142,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: colors.blueGrotto,
   },
   undoPlaceholder: {
     ...reset,
@@ -138,14 +149,12 @@ const styles = StyleSheet.create({
   },
   undoLabel: {
     ...reset,
-    color: colors.ivory,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   brand: {
     ...reset,
     flex: 1,
-    color: colors.blueGrotto,
     fontWeight: '700',
     letterSpacing: 2,
     textAlign: 'center',
@@ -159,14 +168,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     ...reset,
-    color: colors.blueIris,
     fontWeight: '700',
     textAlign: 'center',
   },
   emptyBody: {
     ...reset,
     marginTop: 8,
-    color: colors.blueGrotto,
     textAlign: 'center',
   },
   emptyUndo: {
@@ -175,6 +182,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: colors.blueGrotto,
   },
 });

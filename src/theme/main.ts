@@ -12,13 +12,23 @@ import { useWindowDimensions } from 'react-native';
  * Reset: no borders, no list markers, no default padding/margin, no dots.
  * Prefer flat color planes over cards, rules, or chrome.
  *
- * Palette (most used -> least):
- *   Ivory #E4E3D0  — backgrounds
- *   Blue Grotto #2673C0 — primary actions / active tab
- *   Rose Quartz #E17A70 — swipe / heart accent
- *   Blue Iris #504F80 — text and secondary chrome
+ * Palette keys stay the same in light and dark. Values swap for contrast.
+ * Ivory = page background, Blue Iris = primary text/chrome, Blue Grotto = accent.
  */
-export const colors = {
+export type ThemeColors = {
+  ivory: string;
+  blueGrotto: string;
+  roseQuartz: string;
+  blueIris: string;
+  likeGreen: string;
+  likeGreenDeep: string;
+  rejectRed: string;
+  rejectRedDeep: string;
+  surface: string;
+  gradientEnd: string;
+};
+
+export const lightColors: ThemeColors = {
   ivory: '#E4E3D0',
   blueGrotto: '#2673C0',
   roseQuartz: '#E17A70',
@@ -27,7 +37,25 @@ export const colors = {
   likeGreenDeep: '#3F8F4C',
   rejectRed: '#F0A8A0',
   rejectRedDeep: '#C4453A',
-} as const;
+  surface: '#D8D4C8',
+  gradientEnd: 'rgba(80, 79, 128, 0.94)',
+};
+
+export const darkColors: ThemeColors = {
+  ivory: '#14141C',
+  blueGrotto: '#5B9FE0',
+  roseQuartz: '#E17A70',
+  blueIris: '#E4E3D0',
+  likeGreen: '#B7E0B0',
+  likeGreenDeep: '#6BCF7A',
+  rejectRed: '#F0A8A0',
+  rejectRedDeep: '#FF8A80',
+  surface: '#2A2A36',
+  gradientEnd: 'rgba(20, 20, 28, 0.96)',
+};
+
+/** Default light export for static spots (web HTML shell). Prefer useTheme() in UI. */
+export const colors = lightColors;
 
 export const layout = {
   baselineWidth: 390,

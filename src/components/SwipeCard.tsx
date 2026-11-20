@@ -12,7 +12,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { colors, fluidSize, layout, reset } from '@/theme/main';
+import { useTheme } from '@/theme/ThemeProvider';
+import { fluidSize, layout, reset } from '@/theme/main';
 
 export type SwipeProfile = {
   id: number;
@@ -32,6 +33,7 @@ type SwipeCardProps = {
 const SWIPE_THRESHOLD = 110;
 
 export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
+  const { colors, isDark } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
   const width = Math.min(windowWidth, layout.frameMaxWidth);
   const cardWidth = Math.round(width * 0.84);
@@ -41,6 +43,7 @@ export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
   const bodySize = fluidSize(13, width);
   const iconSize = fluidSize(36, width);
   const firstName = profile.name.split(' ')[0] ?? profile.name;
+  const overlayText = isDark ? '#E4E3D0' : '#E4E3D0';
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -78,7 +81,6 @@ export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
       translateY.value = withSpring(0, { damping: 18, stiffness: 180 });
     });
 
-  // Drag wins once it moves sideways; a plain tap opens the detail page.
   const gesture = Gesture.Exclusive(pan, tap);
 
   const cardStyle = useAnimatedStyle(() => {
@@ -126,12 +128,16 @@ export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
 
       <GestureDetector gesture={gesture}>
         <Animated.View
-          style={[styles.card, { width: cardWidth, height: cardHeight }, cardStyle]}
+          style={[
+            styles.card,
+            { width: cardWidth, height: cardHeight, backgroundColor: colors.blueIris },
+            cardStyle,
+          ]}
         >
           <Image source={profile.image} style={styles.image} resizeMode="cover" />
 
           <LinearGradient
-            colors={['transparent', 'rgba(80, 79, 128, 0.18)', 'rgba(80, 79, 128, 0.94)']}
+            colors={['transparent', 'rgba(80, 79, 128, 0.18)', colors.gradientEnd]}
             locations={[0.42, 0.68, 1]}
             style={styles.fade}
             pointerEvents="none"
@@ -147,11 +153,16 @@ export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
           />
 
           <View style={styles.copy} pointerEvents="none">
-            <Text style={[styles.name, { fontSize: titleSize }]}>
+            <Text style={[styles.name, { fontSize: titleSize, color: overlayText }]}>
               {firstName}, {profile.age}
             </Text>
-            <Text style={[styles.meta, { fontSize: metaSize }]}>{profile.gender}</Text>
-            <Text style={[styles.description, { fontSize: bodySize }]} numberOfLines={3}>
+            <Text style={[styles.meta, { fontSize: metaSize, color: overlayText }]}>
+              {profile.gender}
+            </Text>
+            <Text
+              style={[styles.description, { fontSize: bodySize, color: overlayText }]}
+              numberOfLines={3}
+            >
               {profile.description}
             </Text>
           </View>
@@ -187,7 +198,6 @@ const styles = StyleSheet.create({
     ...reset,
     overflow: 'hidden',
     borderRadius: 18,
-    backgroundColor: colors.blueIris,
   },
   image: {
     ...reset,
@@ -210,19 +220,16 @@ const styles = StyleSheet.create({
   },
   name: {
     ...reset,
-    color: colors.ivory,
     fontWeight: '700',
   },
   meta: {
     ...reset,
-    color: colors.ivory,
     fontWeight: '600',
     opacity: 0.92,
   },
   description: {
     ...reset,
     marginTop: 4,
-    color: colors.ivory,
     lineHeight: 18,
     opacity: 0.95,
   },

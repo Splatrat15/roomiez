@@ -16,7 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { profiles } from '@/data/data';
 import { getConversation } from '@/data/messages';
-import { colors, reset, useFluidSize } from '@/theme/main';
+import { useTheme } from '@/theme/ThemeProvider';
+import { reset, useFluidSize } from '@/theme/main';
 
 type Bubble = {
   id: string;
@@ -39,6 +40,7 @@ function firstName(fullName: string) {
 export default function MessageThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
   const scrollRef = useRef<any>(null);
   const nameSize = useFluidSize(17);
   const bodySize = useFluidSize(16);
@@ -57,16 +59,17 @@ export default function MessageThreadScreen() {
   const left = Platform.OS === 'web' ? 0 : insets.left;
   const right = Platform.OS === 'web' ? 0 : insets.right;
   const bottom = Platform.OS === 'web' ? 10 : Math.max(insets.bottom, 10);
+  const mineText = isDark ? '#14141C' : colors.ivory;
 
   if (!conversation || !profile) {
     return (
-      <View style={[styles.screen, { paddingTop: top }]}>
+      <View style={[styles.screen, { paddingTop: top, backgroundColor: colors.ivory }]}>
         <Pressable style={styles.back} onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="chevron-back" size={28} color={colors.blueGrotto} />
-          <Text style={styles.backLabel}>Back</Text>
+          <Text style={[styles.backLabel, { color: colors.blueGrotto }]}>Back</Text>
         </Pressable>
         <View style={styles.missing}>
-          <Text style={styles.missingText}>Thread not found</Text>
+          <Text style={[styles.missingText, { color: colors.blueIris }]}>Thread not found</Text>
         </View>
       </View>
     );
@@ -100,6 +103,7 @@ export default function MessageThreadScreen() {
           paddingTop: top,
           paddingLeft: left,
           paddingRight: right,
+          backgroundColor: colors.ivory,
         },
       ]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -108,8 +112,14 @@ export default function MessageThreadScreen() {
         <Pressable style={styles.back} onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="chevron-back" size={28} color={colors.blueGrotto} />
         </Pressable>
-        <Image source={profile.image} style={styles.headerAvatar} />
-        <Text style={[styles.headerName, { fontSize: nameSize }]} numberOfLines={1}>
+        <Image
+          source={profile.image}
+          style={[styles.headerAvatar, { backgroundColor: colors.blueIris }]}
+        />
+        <Text
+          style={[styles.headerName, { fontSize: nameSize, color: colors.blueIris }]}
+          numberOfLines={1}
+        >
           {firstName(profile.name)}
         </Text>
       </View>
@@ -128,12 +138,20 @@ export default function MessageThreadScreen() {
               key={message.id}
               style={[styles.bubbleRow, mine ? styles.bubbleRowMine : styles.bubbleRowTheirs]}
             >
-              <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
+              <View
+                style={[
+                  styles.bubble,
+                  {
+                    backgroundColor: mine ? colors.blueGrotto : colors.surface,
+                    borderBottomRightRadius: mine ? 6 : 20,
+                    borderBottomLeftRadius: mine ? 20 : 6,
+                  },
+                ]}
+              >
                 <Text
                   style={[
                     styles.bubbleText,
-                    { fontSize: bodySize },
-                    mine ? styles.bubbleTextMine : styles.bubbleTextTheirs,
+                    { fontSize: bodySize, color: mine ? mineText : colors.blueIris },
                   ]}
                 >
                   {message.text}
@@ -150,7 +168,14 @@ export default function MessageThreadScreen() {
           onChangeText={setDraft}
           placeholder="iMessage"
           placeholderTextColor={`${colors.blueIris}99`}
-          style={[styles.input, { fontSize: bodySize }]}
+          style={[
+            styles.input,
+            {
+              fontSize: bodySize,
+              backgroundColor: colors.surface,
+              color: colors.blueIris,
+            },
+          ]}
           multiline
           onSubmitEditing={send}
           blurOnSubmit={false}
@@ -172,7 +197,6 @@ const styles = StyleSheet.create({
   screen: {
     ...reset,
     flex: 1,
-    backgroundColor: colors.ivory,
   },
   header: {
     ...reset,
@@ -191,7 +215,6 @@ const styles = StyleSheet.create({
   },
   backLabel: {
     ...reset,
-    color: colors.blueGrotto,
     fontWeight: '600',
     fontSize: 16,
   },
@@ -200,12 +223,10 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.blueIris,
   },
   headerName: {
     ...reset,
     flex: 1,
-    color: colors.blueIris,
     fontWeight: '700',
   },
   thread: {
@@ -236,23 +257,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
   },
-  bubbleMine: {
-    backgroundColor: colors.blueGrotto,
-    borderBottomRightRadius: 6,
-  },
-  bubbleTheirs: {
-    backgroundColor: '#D8D4C8',
-    borderBottomLeftRadius: 6,
-  },
   bubbleText: {
     ...reset,
     lineHeight: 22,
-  },
-  bubbleTextMine: {
-    color: colors.ivory,
-  },
-  bubbleTextTheirs: {
-    color: colors.blueIris,
   },
   composer: {
     ...reset,
@@ -270,8 +277,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#D8D4C8',
-    color: colors.blueIris,
   },
   send: {
     ...reset,
@@ -288,7 +293,6 @@ const styles = StyleSheet.create({
   },
   missingText: {
     ...reset,
-    color: colors.blueIris,
     fontWeight: '600',
   },
 });

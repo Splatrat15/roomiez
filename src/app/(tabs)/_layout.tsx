@@ -2,10 +2,16 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import type { ColorValue } from 'react-native';
 
-import { colors, reset } from '@/theme/main';
+import { useTheme } from '@/theme/ThemeProvider';
+import { reset } from '@/theme/main';
 
-function tabIcon(name: keyof typeof Ionicons.glyphMap, color: ColorValue | null, size: number) {
-  const iconColor = typeof color === 'string' ? color : colors.blueIris;
+function tabIcon(
+  name: keyof typeof Ionicons.glyphMap,
+  color: ColorValue | null,
+  size: number,
+  fallback: string,
+) {
+  const iconColor = typeof color === 'string' ? color : fallback;
   return <Ionicons name={name} color={iconColor} size={size} />;
 }
 
@@ -14,6 +20,8 @@ export const unstable_settings = {
 };
 
 export default function TabLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -44,21 +52,21 @@ export default function TabLayout() {
         options={{
           title: 'Swipe',
           tabBarIcon: ({ color, size, focused }) =>
-            tabIcon('heart', focused ? colors.roseQuartz : color, size),
+            tabIcon('heart', focused ? colors.roseQuartz : color, size, colors.blueIris),
         }}
       />
       <Tabs.Screen
         name="messages"
         options={{
           title: 'Messages',
-          tabBarIcon: ({ color, size }) => tabIcon('chatbubble', color, size),
+          tabBarIcon: ({ color, size }) => tabIcon('chatbubble', color, size, colors.blueIris),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => tabIcon('person', color, size),
+          tabBarIcon: ({ color, size }) => tabIcon('person', color, size, colors.blueIris),
         }}
       />
     </Tabs>
