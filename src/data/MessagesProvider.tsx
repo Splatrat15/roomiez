@@ -35,6 +35,7 @@ type MessagesContextValue = {
   blockConversation: (conversationId: string) => void;
   unblockConversation: (conversationId: string) => void;
   reportConversation: (conversationId: string) => void;
+  deleteConversation: (conversationId: string) => void;
 };
 
 const MessagesContext = createContext<MessagesContextValue | null>(null);
@@ -147,6 +148,11 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
             ...conversation,
             reported: true,
           })),
+        );
+      },
+      deleteConversation: (conversationId) => {
+        setConversations((current) =>
+          current.filter((conversation) => String(conversation.id) !== String(conversationId)),
         );
       },
     }),

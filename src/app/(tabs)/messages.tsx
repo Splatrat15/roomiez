@@ -1,10 +1,24 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRef } from 'react';
+import {
+  Alert,
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type ImageSourcePropType,
+} from 'react-native';
+import Swipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { profiles } from '@/data/data';
-import { formatPreview, useMessages } from '@/data/MessagesProvider';
+import { formatPreview, useMessages, type Conversation } from '@/data/MessagesProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { reset, useFluidSize } from '@/theme/main';
 
@@ -12,10 +26,130 @@ function firstName(fullName: string) {
   return fullName.split(' ')[0] ?? fullName;
 }
 
+type ThreadRowProps = {
+  conversation: Conversation;
+  title: string;
+  preview: string;
+  avatars: ImageSourcePropType[];
+  isGroup: boolean;
+  nameSize: number;
+  previewSize: number;
+  onOpen: () => void;
+  onDelete: () => void;
+};
+
+function ThreadRow({
+  conversation,
+  title,
+  preview,
+  avatars,
+  isGroup,
+  nameSize,
+  previewSize,
+  onOpen,
+  onDelete,
+}: ThreadRowProps) {
+  const { colors } = useTheme();
+  const swipeRef = useRef<SwipeableMethods>(null);
+  const blocked = Boolean(conversation.blocked);
+  const muted = blocked ? 0.45 : 1;
+  const nameColor = blocked ? `${colors.blueIris}99` : colors.blueIris;
+  const previewColor = blocked ? `${colors.blueGrotto}88` : colors.blueGrotto;
+
+  const confirmDelete = () => {
+    swipeRef.current?.close();
+    Alert.alert('Delete conversation?', `Remove “${title}” from Messages on this device?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: onDelete,
+      },
+    ]);
+  };
+
+  const renderRightActions = () => (
+    <Pressable style={styles.deleteAction} onPress={confirmDelete}>
+      <Ionicons name="trash" size={22} color="#fff" />
+      <Text style={styles.deleteLabel}>Delete</Text>
+    </Pressable>
+  );
+
+  return (
+    <Swipeable
+      ref={swipeRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      friction={2}
+      rightThreshold={40}
+    >
+      <Pressable
+        style={[
+          styles.row,
+          blocked && styles.rowBlocked,
+          { backgroundColor: colors.ivory },
+        ]}
+        onPress={onOpen}
+      >
+        <View style={{ opacity: muted }}>
+          {isGroup ? (
+            <View style={styles.groupAvatar}>
+              {avatars[0] ? (
+                <Image
+                  source={avatars[0]}
+                  style={[styles.groupAvatarMain, { backgroundColor: colors.blueIris }]}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.groupAvatarMain,
+                    styles.groupFallback,
+                    { backgroundColor: colors.blueGrotto },
+                  ]}
+                >
+                  <Ionicons name="people" size={22} color={colors.ivory} />
+                </View>
+              )}
+              {avatars[1] ? (
+                <Image
+                  source={avatars[1]}
+                  style={[
+                    styles.groupAvatarSecondary,
+                    { backgroundColor: colors.blueIris, borderColor: colors.ivory },
+                  ]}
+                />
+              ) : null}
+            </View>
+          ) : (
+            <Image
+              source={avatars[0]}
+              style={[styles.avatar, { backgroundColor: colors.blueIris }]}
+            />
+          )}
+        </View>
+        <View style={[styles.copy, { opacity: muted }]}>
+          <View style={styles.nameRow}>
+            <Text style={[styles.name, { fontSize: nameSize, color: nameColor }]} numberOfLines={1}>
+              {title}
+            </Text>
+            {blocked ? <Ionicons name="ban" size={16} color="#C23B4B" /> : null}
+          </View>
+          <Text
+            style={[styles.preview, { fontSize: previewSize, color: previewColor }]}
+            numberOfLines={1}
+          >
+            {blocked ? 'Blocked' : preview}
+          </Text>
+        </View>
+      </Pressable>
+    </Swipeable>
+  );
+}
+
 export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { conversations } = useMessages();
+  const { conversations, deleteConversation } = useMessages();
   const titleSize = useFluidSize(28);
   const nameSize = useFluidSize(16);
   const previewSize = useFluidSize(13);
@@ -92,76 +226,25 @@ export default function MessagesScreen() {
           }
 
           const { conversation, title, preview, avatars, isGroup } = thread;
-          const blocked = Boolean(conversation.blocked);
-          const muted = blocked ? 0.45 : 1;
-          const nameColor = blocked ? `${colors.blueIris}99` : colors.blueIris;
-          const previewColor = blocked ? `${colors.blueGrotto}88` : colors.blueGrotto;
 
           return (
-            <Pressable
+            <ThreadRow
               key={conversation.id}
-              style={[styles.row, blocked && styles.rowBlocked]}
-              onPress={() =>
+              conversation={conversation}
+              title={title}
+              preview={preview}
+              avatars={avatars}
+              isGroup={isGroup}
+              nameSize={nameSize}
+              previewSize={previewSize}
+              onOpen={() =>
                 router.push({
                   pathname: '/message/[id]',
                   params: { id: conversation.id },
                 })
               }
-            >
-              <View style={{ opacity: muted }}>
-                {isGroup ? (
-                  <View style={styles.groupAvatar}>
-                    {avatars[0] ? (
-                      <Image
-                        source={avatars[0]}
-                        style={[styles.groupAvatarMain, { backgroundColor: colors.blueIris }]}
-                      />
-                    ) : (
-                      <View
-                        style={[
-                          styles.groupAvatarMain,
-                          styles.groupFallback,
-                          { backgroundColor: colors.blueGrotto },
-                        ]}
-                      >
-                        <Ionicons name="people" size={22} color={colors.ivory} />
-                      </View>
-                    )}
-                    {avatars[1] ? (
-                      <Image
-                        source={avatars[1]}
-                        style={[
-                          styles.groupAvatarSecondary,
-                          { backgroundColor: colors.blueIris, borderColor: colors.ivory },
-                        ]}
-                      />
-                    ) : null}
-                  </View>
-                ) : (
-                  <Image
-                    source={avatars[0]}
-                    style={[styles.avatar, { backgroundColor: colors.blueIris }]}
-                  />
-                )}
-              </View>
-              <View style={[styles.copy, { opacity: muted }]}>
-                <View style={styles.nameRow}>
-                  <Text
-                    style={[styles.name, { fontSize: nameSize, color: nameColor }]}
-                    numberOfLines={1}
-                  >
-                    {title}
-                  </Text>
-                  {blocked ? <Ionicons name="ban" size={16} color="#C23B4B" /> : null}
-                </View>
-                <Text
-                  style={[styles.preview, { fontSize: previewSize, color: previewColor }]}
-                  numberOfLines={1}
-                >
-                  {blocked ? 'Blocked' : preview}
-                </Text>
-              </View>
-            </Pressable>
+              onDelete={() => deleteConversation(conversation.id)}
+            />
           );
         })}
       </ScrollView>
@@ -209,6 +292,20 @@ const styles = StyleSheet.create({
   },
   rowBlocked: {
     backgroundColor: 'rgba(0,0,0,0.04)',
+  },
+  deleteAction: {
+    ...reset,
+    width: 88,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#C23B4B',
+    gap: 4,
+  },
+  deleteLabel: {
+    ...reset,
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 12,
   },
   avatar: {
     ...reset,
