@@ -23,6 +23,7 @@ export const defaultAbout = {
     details: '',
   },
   expressYourself: '',
+  oneWordDescribeMe: '',
 };
 
 export const currentUser = {

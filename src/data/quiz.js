@@ -145,4 +145,10 @@ export const ABOUT_QUESTIONS = [
     prompt: 'Express yourself — anything else?',
     placeholder: 'Tell future roommates who you are…',
   },
+  {
+    id: 'oneWordDescribeMe',
+    type: 'text',
+    prompt: 'One word to describe me',
+    placeholder: 'Just for fun — one word…',
+  },
 ];

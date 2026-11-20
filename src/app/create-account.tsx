@@ -123,6 +123,10 @@ export default function CreateAccountScreen() {
       if (question.type === 'text' && question.id === 'medicalConditions') {
         return true;
       }
+      if (question.type === 'text' && question.id === 'oneWordDescribeMe') {
+        const word = String(draft.about.oneWordDescribeMe ?? '').trim();
+        return word.length > 0 && !/\s/.test(word);
+      }
       if (question.type === 'text') {
         return String(draft.about[question.id as 'expressYourself'] ?? '').trim().length > 0;
       }

@@ -166,6 +166,16 @@ export default function ProfileScreen() {
               {about.expressYourself.trim() || user.description}
             </Text>
           </View>
+          {about.oneWordDescribeMe.trim() ? (
+            <View style={[styles.bioCard, { backgroundColor: colors.ivory }]}>
+              <Text style={[styles.tileLabel, { color: colors.blueGrotto }]}>
+                One word to describe me
+              </Text>
+              <Text style={[styles.oneWord, { color: colors.blueIris }]}>
+                {about.oneWordDescribeMe.trim()}
+              </Text>
+            </View>
+          ) : null}
         </ProfileSection>
 
         <ProfileSection title="Hobbies" colors={colors} onEdit={openQuiz}>
@@ -317,6 +327,12 @@ const styles = StyleSheet.create({
   bio: {
     ...reset,
     lineHeight: 22,
+  },
+  oneWord: {
+    ...reset,
+    fontSize: 22,
+    fontWeight: '700',
+    letterSpacing: 0.4,
   },
   tileGrid: {
     ...reset,
