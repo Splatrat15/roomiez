@@ -23,6 +23,10 @@ export const colors = {
   blueGrotto: '#2673C0',
   roseQuartz: '#E17A70',
   blueIris: '#504F80',
+  likeGreen: '#B7E0B0',
+  likeGreenDeep: '#3F8F4C',
+  rejectRed: '#F0A8A0',
+  rejectRedDeep: '#C4453A',
 } as const;
 
 export const layout = {
