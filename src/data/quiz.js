@@ -1,5 +1,14 @@
 /** Part 1 = about you. Part 2 = roommate likes/dislikes (matching signal). */
 
+/** Profile pencil targets → quiz landing spots. */
+export const QUIZ_SECTIONS = {
+  about: 'about',
+  hobbies: 'hobbies',
+  lifestyle: 'lifestyle',
+  likes: 'likes',
+  dislikes: 'dislikes',
+};
+
 export const HOBBY_OPTIONS = [
   'Cooking',
   'Gaming',

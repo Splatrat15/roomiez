@@ -110,7 +110,11 @@ export default function ProfileScreen() {
   const allergyLine = about.allergies.has
     ? about.allergies.details || 'Yes'
     : 'No allergies listed';
-  const openQuiz = () => router.push('/create-account');
+  const openQuiz = (section: 'about' | 'hobbies' | 'lifestyle' | 'likes' | 'dislikes') =>
+    router.push({
+      pathname: '/create-account',
+      params: { section },
+    });
 
   return (
     <View
@@ -159,7 +163,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <ProfileSection title="About me" colors={colors} onEdit={openQuiz}>
+        <ProfileSection title="About me" colors={colors} onEdit={() => openQuiz('about')}>
           <View style={[styles.bioCard, { backgroundColor: colors.ivory }]}>
             <Text style={[styles.tileLabel, { color: colors.blueGrotto }]}>Express yourself</Text>
             <Text style={[styles.bio, { fontSize: bodySize, color: colors.blueIris }]}>
@@ -178,11 +182,11 @@ export default function ProfileScreen() {
           ) : null}
         </ProfileSection>
 
-        <ProfileSection title="Hobbies" colors={colors} onEdit={openQuiz}>
+        <ProfileSection title="Hobbies" colors={colors} onEdit={() => openQuiz('hobbies')}>
           <ChipRow items={user.hobbies} colors={colors} />
         </ProfileSection>
 
-        <ProfileSection title="Lifestyle" colors={colors} onEdit={openQuiz}>
+        <ProfileSection title="Lifestyle" colors={colors} onEdit={() => openQuiz('lifestyle')}>
           <View style={styles.tileGrid}>
             <ProfileTile
               label="Cleanliness"
@@ -211,7 +215,11 @@ export default function ProfileScreen() {
           </View>
         </ProfileSection>
 
-        <ProfileSection title="Looking for in a roommate" colors={colors} onEdit={openQuiz}>
+        <ProfileSection
+          title="Looking for in a roommate"
+          colors={colors}
+          onEdit={() => openQuiz('likes')}
+        >
           <ChipRow items={user.roommateLikes} colors={colors} filled />
         </ProfileSection>
 
@@ -219,7 +227,7 @@ export default function ProfileScreen() {
           title="Private dislikes (only you)"
           colors={colors}
           accent={colors.roseQuartz}
-          onEdit={openQuiz}
+          onEdit={() => openQuiz('dislikes')}
         >
           <ChipRow items={user.roommateDislikes} colors={colors} />
         </ProfileSection>

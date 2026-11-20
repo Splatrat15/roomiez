@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
-import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import {
   Alert,
   Platform,
@@ -19,7 +19,7 @@ import {
   ROOMMATE_DISLIKE_OPTIONS,
   ROOMMATE_LIKE_OPTIONS,
 } from '@/data/quiz';
-import { createEmptyQuizDraft, defaultAbout } from '@/data/user';
+import { defaultAbout } from '@/data/user';
 import { useUser } from '@/data/UserProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { reset, useFluidSize } from '@/theme/main';
@@ -54,6 +54,35 @@ function buildSteps(): Step[] {
   ];
 }
 
+function findSectionStepIndex(steps: Step[], section?: string) {
+  if (!section) {
+    return 0;
+  }
+
+  if (section === 'hobbies') {
+    return steps.findIndex((step) => step.kind === 'hobbies');
+  }
+
+  if (section === 'lifestyle') {
+    return steps.findIndex((step) => step.kind === 'about' && step.index === 0);
+  }
+
+  if (section === 'about') {
+    const expressIndex = ABOUT_QUESTIONS.findIndex((question) => question.id === 'expressYourself');
+    return steps.findIndex((step) => step.kind === 'about' && step.index === expressIndex);
+  }
+
+  if (section === 'likes') {
+    return steps.findIndex((step) => step.kind === 'likes');
+  }
+
+  if (section === 'dislikes') {
+    return steps.findIndex((step) => step.kind === 'dislikes');
+  }
+
+  return 0;
+}
+
 function toggleItem(list: string[], value: string) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
@@ -61,13 +90,28 @@ function toggleItem(list: string[], value: string) {
 export default function CreateAccountScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const { saveQuizAnswers } = useUser();
+  const { user, saveQuizAnswers } = useUser();
+  const { section } = useLocalSearchParams<{ section?: string }>();
   const titleSize = useFluidSize(26);
   const bodySize = useFluidSize(15);
   const steps = useMemo(() => buildSteps(), []);
+  const initialStep = Math.max(0, findSectionStepIndex(steps, section));
+  const entryStepRef = useRef(initialStep);
 
-  const [stepIndex, setStepIndex] = useState(0);
-  const [draft, setDraft] = useState<QuizDraft>(() => createEmptyQuizDraft() as QuizDraft);
+  const [stepIndex, setStepIndex] = useState(initialStep);
+  const [draft, setDraft] = useState<QuizDraft>(() => ({
+    hobbies: [...user.hobbies],
+    about: {
+      ...defaultAbout,
+      ...user.about,
+      allergies: {
+        ...defaultAbout.allergies,
+        ...user.about.allergies,
+      },
+    },
+    roommateLikes: [...user.roommateLikes],
+    roommateDislikes: [...user.roommateDislikes],
+  }));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -82,7 +126,7 @@ export default function CreateAccountScreen() {
 
   const goNext = () => setStepIndex((current) => Math.min(current + 1, steps.length - 1));
   const goBack = () => {
-    if (stepIndex === 0) {
+    if (stepIndex <= entryStepRef.current) {
       router.back();
       return;
     }
