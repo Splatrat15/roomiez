@@ -74,13 +74,21 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         return conversation;
       },
       appendMessage: (conversationId, message) => {
-        setConversations((current) =>
-          current.map((conversation) =>
-            String(conversation.id) === String(conversationId)
-              ? { ...conversation, messages: [...conversation.messages, message] }
-              : conversation,
-          ),
-        );
+        setConversations((current) => {
+          const index = current.findIndex(
+            (conversation) => String(conversation.id) === String(conversationId),
+          );
+          if (index < 0) {
+            return current;
+          }
+
+          const updated: Conversation = {
+            ...current[index],
+            messages: [...current[index].messages, message],
+          };
+
+          return [updated, ...current.filter((_, i) => i !== index)];
+        });
       },
     }),
     [conversations],
