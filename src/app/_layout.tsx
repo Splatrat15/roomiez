@@ -20,6 +20,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="roommate/[id]" />
             <Stack.Screen name="message/[id]" />
+            <Stack.Screen name="settings" />
           </Stack>
         </View>
       </View>
