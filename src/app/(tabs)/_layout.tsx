@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import type { ColorValue } from 'react-native';
 
-import { colors } from '@/theme/main';
+import { colors, reset } from '@/theme/main';
 
 function tabIcon(name: keyof typeof Ionicons.glyphMap, color: ColorValue | null, size: number) {
   const iconColor = typeof color === 'string' ? color : colors.blueIris;
@@ -21,16 +21,19 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.blueGrotto,
         tabBarInactiveTintColor: colors.blueIris,
         tabBarStyle: {
+          ...reset,
           backgroundColor: colors.ivory,
-          borderTopWidth: 0,
-          borderWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
-          margin: 0,
+          shadowRadius: 0,
+          shadowOffset: { width: 0, height: 0 },
         },
         tabBarLabelStyle: {
-          margin: 0,
+          ...reset,
           fontWeight: '600',
+        },
+        tabBarItemStyle: {
+          ...reset,
         },
         sceneStyle: { backgroundColor: colors.ivory },
       }}

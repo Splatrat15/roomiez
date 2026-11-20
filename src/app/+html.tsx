@@ -16,7 +16,13 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: env(safe-area-inset-left, 0px);
 }
-ul, ol, li {
+ul, ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+li {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -24,6 +30,7 @@ ul, ol, li {
 }
 * {
   box-sizing: border-box;
+  border-style: none;
 }
 `;
 
