@@ -3,8 +3,12 @@ import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SwipeCard, type SwipeProfile } from '@/components/SwipeCard';
+import { SwipeTutorialOverlay } from '@/components/SwipeTutorialOverlay';
 import { profiles } from '@/data/data';
 import { colors, reset, useFluidSize } from '@/theme/main';
+
+/** Survives tab switches. Resets when the app reloads. */
+let swipeTutorialSeenThisSession = false;
 
 function shuffleProfiles(list: SwipeProfile[]) {
   const next = [...list];
@@ -19,6 +23,7 @@ export default function SwipeScreen() {
   const insets = useSafeAreaInsets();
   const [deck] = useState(() => shuffleProfiles(profiles as SwipeProfile[]));
   const [index, setIndex] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(!swipeTutorialSeenThisSession);
   const titleSize = useFluidSize(18);
   const emptySize = useFluidSize(22);
 
@@ -53,6 +58,15 @@ export default function SwipeScreen() {
           <Text style={styles.emptyBody}>You have swiped through everyone for now.</Text>
         </View>
       )}
+
+      {showTutorial ? (
+        <SwipeTutorialOverlay
+          onDismiss={() => {
+            swipeTutorialSeenThisSession = true;
+            setShowTutorial(false);
+          }}
+        />
+      ) : null}
     </View>
   );
 }
