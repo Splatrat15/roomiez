@@ -34,6 +34,7 @@ type ThreadRowProps = {
   isGroup: boolean;
   nameSize: number;
   previewSize: number;
+  avatarSize: number;
   onOpen: () => void;
   onDelete: () => void;
 };
@@ -46,6 +47,7 @@ function ThreadRow({
   isGroup,
   nameSize,
   previewSize,
+  avatarSize,
   onOpen,
   onDelete,
 }: ThreadRowProps) {
@@ -55,6 +57,8 @@ function ThreadRow({
   const muted = blocked ? 0.45 : 1;
   const nameColor = blocked ? `${colors.blueIris}99` : colors.blueIris;
   const previewColor = blocked ? `${colors.blueGrotto}88` : colors.blueGrotto;
+  const mainSize = Math.round(avatarSize * 0.72);
+  const secondarySize = Math.round(avatarSize * 0.64);
 
   const confirmDelete = () => {
     swipeRef.current?.close();
@@ -69,9 +73,12 @@ function ThreadRow({
   };
 
   const renderRightActions = () => (
-    <Pressable style={styles.deleteAction} onPress={confirmDelete}>
-      <Ionicons name="trash" size={22} color="#fff" />
-      <Text style={styles.deleteLabel}>Delete</Text>
+    <Pressable
+      style={[styles.deleteAction, { width: Math.round(avatarSize * 1.55), backgroundColor: colors.rejectRedDeep }]}
+      onPress={confirmDelete}
+    >
+      <Ionicons name="trash" size={Math.round(avatarSize * 0.4)} color={colors.ivory} />
+      <Text style={[styles.deleteLabel, { color: colors.ivory }]}>Delete</Text>
     </Pressable>
   );
 
@@ -86,44 +93,67 @@ function ThreadRow({
       <Pressable
         style={[
           styles.row,
-          blocked && styles.rowBlocked,
-          { backgroundColor: colors.ivory },
+          { backgroundColor: blocked ? `${colors.blueIris}12` : colors.ivory },
         ]}
         onPress={onOpen}
       >
         <View style={{ opacity: muted }}>
           {isGroup ? (
-            <View style={styles.groupAvatar}>
+            <View style={{ width: avatarSize, height: avatarSize }}>
               {avatars[0] ? (
                 <Image
                   source={avatars[0]}
-                  style={[styles.groupAvatarMain, { backgroundColor: colors.blueIris }]}
+                  style={{
+                    width: mainSize,
+                    height: mainSize,
+                    borderRadius: mainSize / 2,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    backgroundColor: colors.blueIris,
+                  }}
                 />
               ) : (
                 <View
                   style={[
-                    styles.groupAvatarMain,
                     styles.groupFallback,
-                    { backgroundColor: colors.blueGrotto },
+                    {
+                      width: mainSize,
+                      height: mainSize,
+                      borderRadius: mainSize / 2,
+                      backgroundColor: colors.blueGrotto,
+                    },
                   ]}
                 >
-                  <Ionicons name="people" size={22} color={colors.ivory} />
+                  <Ionicons name="people" size={Math.round(avatarSize * 0.4)} color={colors.ivory} />
                 </View>
               )}
               {avatars[1] ? (
                 <Image
                   source={avatars[1]}
-                  style={[
-                    styles.groupAvatarSecondary,
-                    { backgroundColor: colors.blueIris, borderColor: colors.ivory },
-                  ]}
+                  style={{
+                    width: secondarySize,
+                    height: secondarySize,
+                    borderRadius: secondarySize / 2,
+                    position: 'absolute',
+                    right: 0,
+                    bottom: 0,
+                    borderWidth: 2,
+                    backgroundColor: colors.blueIris,
+                    borderColor: colors.ivory,
+                  }}
                 />
               ) : null}
             </View>
           ) : (
             <Image
               source={avatars[0]}
-              style={[styles.avatar, { backgroundColor: colors.blueIris }]}
+              style={{
+                width: avatarSize,
+                height: avatarSize,
+                borderRadius: avatarSize / 2,
+                backgroundColor: colors.blueIris,
+              }}
             />
           )}
         </View>
@@ -132,7 +162,9 @@ function ThreadRow({
             <Text style={[styles.name, { fontSize: nameSize, color: nameColor }]} numberOfLines={1}>
               {title}
             </Text>
-            {blocked ? <Ionicons name="ban" size={16} color="#C23B4B" /> : null}
+            {blocked ? (
+              <Ionicons name="ban" size={Math.round(nameSize)} color={colors.rejectRedDeep} />
+            ) : null}
           </View>
           <Text
             style={[styles.preview, { fontSize: previewSize, color: previewColor }]}
@@ -153,6 +185,9 @@ export default function MessagesScreen() {
   const titleSize = useFluidSize(28);
   const nameSize = useFluidSize(16);
   const previewSize = useFluidSize(13);
+  const avatarSize = useFluidSize(56);
+  const emptyTitleSize = useFluidSize(18);
+  const emptyBodySize = useFluidSize(14);
 
   const top = Platform.OS === 'web' ? 0 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
@@ -222,9 +257,11 @@ export default function MessagesScreen() {
       >
         {!threads.length ? (
           <View style={styles.empty}>
-            <Text style={[styles.emptyTitle, { color: colors.blueIris }]}>No messages yet</Text>
-            <Text style={[styles.emptyBody, { color: colors.blueGrotto }]}>
-              Swipe right (checkmark) on someone in Swipe and they will show up here.
+            <Text style={[styles.emptyTitle, { fontSize: emptyTitleSize, color: colors.blueIris }]}>
+              No messages yet
+            </Text>
+            <Text style={[styles.emptyBody, { fontSize: emptyBodySize, color: colors.blueGrotto }]}>
+              Swipe right on someone and they show up here.
             </Text>
           </View>
         ) : (
@@ -245,6 +282,7 @@ export default function MessagesScreen() {
                 isGroup={isGroup}
                 nameSize={nameSize}
                 previewSize={previewSize}
+                avatarSize={avatarSize}
                 onOpen={() =>
                   router.push({
                     pathname: '/message/[id]',
@@ -301,12 +339,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     ...reset,
     fontWeight: '700',
-    fontSize: 18,
     textAlign: 'center',
   },
   emptyBody: {
     ...reset,
-    fontSize: 14,
     lineHeight: 20,
     textAlign: 'center',
   },
@@ -318,52 +354,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  rowBlocked: {
-    backgroundColor: 'rgba(0,0,0,0.04)',
-  },
   deleteAction: {
     ...reset,
-    width: 88,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C23B4B',
     gap: 4,
   },
   deleteLabel: {
     ...reset,
-    color: '#fff',
     fontWeight: '700',
     fontSize: 12,
-  },
-  avatar: {
-    ...reset,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-  },
-  groupAvatar: {
-    ...reset,
-    width: 56,
-    height: 56,
-  },
-  groupAvatarMain: {
-    ...reset,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-  groupAvatarSecondary: {
-    ...reset,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    position: 'absolute',
-    right: 0,
-    bottom: 0,
-    borderWidth: 2,
   },
   groupFallback: {
     alignItems: 'center',

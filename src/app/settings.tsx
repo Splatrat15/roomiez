@@ -74,7 +74,7 @@ export default function SettingsScreen() {
           <Switch
             value={isDark}
             onValueChange={setDarkMode}
-            trackColor={{ false: '#B8B4A8', true: colors.blueGrotto }}
+            trackColor={{ false: colors.surface, true: colors.blueGrotto }}
             thumbColor={colors.ivory}
           />
         </View>

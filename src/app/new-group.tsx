@@ -19,7 +19,7 @@ import { reset, useFluidSize } from '@/theme/main';
 
 export default function NewGroupScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { createGroupChat, matchedProfiles } = useMessages();
   const titleSize = useFluidSize(22);
   const bodySize = useFluidSize(15);
@@ -32,7 +32,7 @@ export default function NewGroupScreen() {
   const left = Platform.OS === 'web' ? 0 : insets.left;
   const right = Platform.OS === 'web' ? 0 : insets.right;
   const bottom = Platform.OS === 'web' ? 16 : Math.max(insets.bottom, 16);
-  const onAccent = isDark ? '#14141C' : colors.ivory;
+  const onAccent = colors.ivory;
 
   const selected = useMemo(
     () => matchedProfiles.filter((person) => selectedIds.includes(person.id)),

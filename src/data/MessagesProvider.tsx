@@ -71,7 +71,7 @@ function starterConversation(profileId: number): Conversation | null {
       {
         id: `${profileId}-match`,
         sender: 'them',
-        text: `You matched with ${first}! Say hi and talk roommates.`,
+        text: `You matched with ${first}. Say hi!`,
       },
     ],
   };

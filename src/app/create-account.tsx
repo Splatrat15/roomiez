@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
+import { useMemo, useState, type Dispatch, type SetStateAction } from 'react';
 import {
   Alert,
   Platform,
@@ -151,7 +151,7 @@ function toggleItem(list: string[], value: string) {
 
 export default function CreateAccountScreen() {
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { user, saveQuizAnswers } = useUser();
   const { section } = useLocalSearchParams<{ section?: string }>();
   const titleSize = useFluidSize(26);
@@ -159,7 +159,7 @@ export default function CreateAccountScreen() {
   const steps = useMemo(() => buildSteps(), []);
   const initialStep = Math.max(0, findSectionStepIndex(steps, section));
   const sectionEndStep = useMemo(() => findSectionEndStepIndex(steps, section), [steps, section]);
-  const entryStepRef = useRef(initialStep);
+  const [entryStep] = useState(initialStep);
   const isSectionEdit = Boolean(section) && sectionEndStep >= 0;
 
   const [stepIndex, setStepIndex] = useState(initialStep);
@@ -194,17 +194,17 @@ export default function CreateAccountScreen() {
 
   const step = steps[stepIndex];
   const atSectionEnd = isSectionEdit && stepIndex === sectionEndStep;
-  const sectionSpan = Math.max(sectionEndStep - entryStepRef.current, 0);
+  const sectionSpan = Math.max(sectionEndStep - entryStep, 0);
   const progress = isSectionEdit
     ? sectionSpan === 0
       ? 1
-      : (stepIndex - entryStepRef.current) / sectionSpan
+      : (stepIndex - entryStep) / sectionSpan
     : stepIndex / Math.max(steps.length - 1, 1);
-  const onAccent = isDark ? '#14141C' : colors.ivory;
+  const onAccent = colors.ivory;
 
   const goNext = () => setStepIndex((current) => Math.min(current + 1, steps.length - 1));
   const goBack = () => {
-    if (stepIndex <= entryStepRef.current) {
+    if (stepIndex <= entryStep) {
       router.back();
       return;
     }
