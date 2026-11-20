@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Image, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -33,12 +34,13 @@ const SWIPE_THRESHOLD = 110;
 export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
   const { width: windowWidth } = useWindowDimensions();
   const width = Math.min(windowWidth, layout.frameMaxWidth);
-  const cardWidth = Math.round(width * 0.76);
-  const imageHeight = Math.round(cardWidth * 1.2);
-  const titleSize = fluidSize(24, width);
+  const cardWidth = Math.round(width * 0.84);
+  const cardHeight = Math.round(cardWidth * (4 / 3));
+  const titleSize = fluidSize(28, width);
   const metaSize = fluidSize(14, width);
-  const bodySize = fluidSize(14, width);
+  const bodySize = fluidSize(13, width);
   const iconSize = fluidSize(36, width);
+  const firstName = profile.name.split(' ')[0] ?? profile.name;
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -123,25 +125,35 @@ export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
       </Animated.View>
 
       <GestureDetector gesture={gesture}>
-        <Animated.View style={[styles.card, { width: cardWidth }, cardStyle]}>
-          <View style={[styles.imageFrame, { height: imageHeight }]}>
-            <Image source={profile.image} style={styles.image} resizeMode="cover" />
-            <Animated.View
-              style={[styles.wash, { backgroundColor: colors.likeGreen }, likeWashStyle]}
-              pointerEvents="none"
-            />
-            <Animated.View
-              style={[styles.wash, { backgroundColor: colors.rejectRed }, rejectWashStyle]}
-              pointerEvents="none"
-            />
-          </View>
+        <Animated.View
+          style={[styles.card, { width: cardWidth, height: cardHeight }, cardStyle]}
+        >
+          <Image source={profile.image} style={styles.image} resizeMode="cover" />
 
-          <View style={styles.info}>
+          <LinearGradient
+            colors={['transparent', 'rgba(80, 79, 128, 0.18)', 'rgba(80, 79, 128, 0.94)']}
+            locations={[0.42, 0.68, 1]}
+            style={styles.fade}
+            pointerEvents="none"
+          />
+
+          <Animated.View
+            style={[styles.wash, { backgroundColor: colors.likeGreen }, likeWashStyle]}
+            pointerEvents="none"
+          />
+          <Animated.View
+            style={[styles.wash, { backgroundColor: colors.rejectRed }, rejectWashStyle]}
+            pointerEvents="none"
+          />
+
+          <View style={styles.copy} pointerEvents="none">
             <Text style={[styles.name, { fontSize: titleSize }]}>
-              {profile.name}, {profile.age}
+              {firstName}, {profile.age}
             </Text>
             <Text style={[styles.meta, { fontSize: metaSize }]}>{profile.gender}</Text>
-            <Text style={[styles.description, { fontSize: bodySize }]}>{profile.description}</Text>
+            <Text style={[styles.description, { fontSize: bodySize }]} numberOfLines={3}>
+              {profile.description}
+            </Text>
           </View>
         </Animated.View>
       </GestureDetector>
@@ -166,20 +178,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   leftCue: {
-    left: '3%',
+    left: '2%',
   },
   rightCue: {
-    right: '3%',
+    right: '2%',
   },
   card: {
     ...reset,
-    backgroundColor: colors.ivory,
     overflow: 'hidden',
-  },
-  imageFrame: {
-    ...reset,
-    width: '100%',
-    overflow: 'hidden',
+    borderRadius: 18,
     backgroundColor: colors.blueIris,
   },
   image: {
@@ -187,28 +194,36 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  fade: {
+    ...StyleSheet.absoluteFill,
+  },
   wash: {
     ...StyleSheet.absoluteFill,
   },
-  info: {
+  copy: {
     ...reset,
-    paddingTop: 14,
-    paddingBottom: 4,
-    gap: 4,
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    bottom: 18,
+    gap: 3,
   },
   name: {
     ...reset,
-    color: colors.blueIris,
+    color: colors.ivory,
     fontWeight: '700',
   },
   meta: {
     ...reset,
-    color: colors.blueGrotto,
+    color: colors.ivory,
     fontWeight: '600',
+    opacity: 0.92,
   },
   description: {
     ...reset,
-    color: colors.blueIris,
-    lineHeight: 20,
+    marginTop: 4,
+    color: colors.ivory,
+    lineHeight: 18,
+    opacity: 0.95,
   },
 });
