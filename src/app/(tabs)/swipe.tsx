@@ -2,12 +2,22 @@ import { useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SwipeCard } from '@/components/SwipeCard';
+import { SwipeCard, type SwipeProfile } from '@/components/SwipeCard';
 import { profiles } from '@/data/data';
 import { colors, reset, useFluidSize } from '@/theme/main';
 
+function shuffleProfiles(list: SwipeProfile[]) {
+  const next = [...list];
+  for (let i = next.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [next[i], next[j]] = [next[j], next[i]];
+  }
+  return next;
+}
+
 export default function SwipeScreen() {
   const insets = useSafeAreaInsets();
+  const [deck] = useState(() => shuffleProfiles(profiles as SwipeProfile[]));
   const [index, setIndex] = useState(0);
   const titleSize = useFluidSize(18);
   const emptySize = useFluidSize(22);
@@ -16,7 +26,7 @@ export default function SwipeScreen() {
   const left = Platform.OS === 'web' ? 0 : insets.left;
   const right = Platform.OS === 'web' ? 0 : insets.right;
 
-  const profile = profiles[index];
+  const profile = deck[index];
 
   return (
     <View
