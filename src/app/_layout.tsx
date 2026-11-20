@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { UserProvider } from '@/data/UserProvider';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 import { layout, reset } from '@/theme/main';
 
@@ -37,7 +38,9 @@ function RootShell() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootShell />
+      <UserProvider>
+        <RootShell />
+      </UserProvider>
     </ThemeProvider>
   );
 }
