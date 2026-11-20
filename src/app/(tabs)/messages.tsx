@@ -220,33 +220,42 @@ export default function MessagesScreen() {
         contentContainerStyle={[styles.listContent, { paddingBottom: 24 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
       >
-        {threads.map((thread) => {
-          if (!thread) {
-            return null;
-          }
+        {!threads.length ? (
+          <View style={styles.empty}>
+            <Text style={[styles.emptyTitle, { color: colors.blueIris }]}>No messages yet</Text>
+            <Text style={[styles.emptyBody, { color: colors.blueGrotto }]}>
+              Swipe right (checkmark) on someone in Swipe and they will show up here.
+            </Text>
+          </View>
+        ) : (
+          threads.map((thread) => {
+            if (!thread) {
+              return null;
+            }
 
-          const { conversation, title, preview, avatars, isGroup } = thread;
+            const { conversation, title, preview, avatars, isGroup } = thread;
 
-          return (
-            <ThreadRow
-              key={conversation.id}
-              conversation={conversation}
-              title={title}
-              preview={preview}
-              avatars={avatars}
-              isGroup={isGroup}
-              nameSize={nameSize}
-              previewSize={previewSize}
-              onOpen={() =>
-                router.push({
-                  pathname: '/message/[id]',
-                  params: { id: conversation.id },
-                })
-              }
-              onDelete={() => deleteConversation(conversation.id)}
-            />
-          );
-        })}
+            return (
+              <ThreadRow
+                key={conversation.id}
+                conversation={conversation}
+                title={title}
+                preview={preview}
+                avatars={avatars}
+                isGroup={isGroup}
+                nameSize={nameSize}
+                previewSize={previewSize}
+                onOpen={() =>
+                  router.push({
+                    pathname: '/message/[id]',
+                    params: { id: conversation.id },
+                  })
+                }
+                onDelete={() => deleteConversation(conversation.id)}
+              />
+            );
+          })
+        )}
       </ScrollView>
     </View>
   );
@@ -281,6 +290,25 @@ const styles = StyleSheet.create({
   listContent: {
     ...reset,
     flexGrow: 1,
+  },
+  empty: {
+    ...reset,
+    paddingHorizontal: 28,
+    paddingTop: 48,
+    alignItems: 'center',
+    gap: 8,
+  },
+  emptyTitle: {
+    ...reset,
+    fontWeight: '700',
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  emptyBody: {
+    ...reset,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
   },
   row: {
     ...reset,

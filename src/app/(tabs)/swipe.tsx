@@ -6,11 +6,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SwipeCard, type SwipeProfile } from '@/components/SwipeCard';
 import { SwipeTutorialOverlay } from '@/components/SwipeTutorialOverlay';
 import { profiles } from '@/data/data';
+import { useMessages } from '@/data/MessagesProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { reset, useFluidSize } from '@/theme/main';
 
 /** Survives tab switches. Resets when the app reloads. */
 let swipeTutorialSeenThisSession = false;
+
+type SwipeHistoryEntry = {
+  profileId: number;
+  direction: 'left' | 'right';
+};
 
 function shuffleProfiles(list: SwipeProfile[]) {
   const next = [...list];
@@ -24,19 +30,33 @@ function shuffleProfiles(list: SwipeProfile[]) {
 export default function SwipeScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { likeProfile, unlikeProfile } = useMessages();
   const [deck] = useState(() => shuffleProfiles(profiles as SwipeProfile[]));
   const [index, setIndex] = useState(0);
+  const [history, setHistory] = useState<SwipeHistoryEntry[]>([]);
   const [showTutorial, setShowTutorial] = useState(!swipeTutorialSeenThisSession);
   const titleSize = useFluidSize(18);
   const undoSize = useFluidSize(13);
   const emptySize = useFluidSize(22);
-  const canUndo = index > 0;
+  const canUndo = history.length > 0;
 
   const top = Platform.OS === 'web' ? 0 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
   const right = Platform.OS === 'web' ? 0 : insets.right;
 
   const profile = deck[index];
+
+  const undoLast = () => {
+    const last = history[history.length - 1];
+    if (!last) {
+      return;
+    }
+    if (last.direction === 'right') {
+      unlikeProfile(last.profileId);
+    }
+    setHistory((current) => current.slice(0, -1));
+    setIndex((value) => Math.max(0, value - 1));
+  };
 
   return (
     <View
@@ -53,7 +73,7 @@ export default function SwipeScreen() {
       <View style={styles.topBar}>
         {canUndo ? (
           <Pressable
-            onPress={() => setIndex((current) => Math.max(0, current - 1))}
+            onPress={undoLast}
             hitSlop={10}
             style={[styles.undoButton, { backgroundColor: colors.blueGrotto }]}
             accessibilityRole="button"
@@ -76,7 +96,13 @@ export default function SwipeScreen() {
         <SwipeCard
           key={`${profile.id}-${index}`}
           profile={profile}
-          onSwiped={() => setIndex((current) => current + 1)}
+          onSwiped={(direction) => {
+            if (direction === 'right') {
+              likeProfile(profile.id);
+            }
+            setHistory((current) => [...current, { profileId: profile.id, direction }]);
+            setIndex((current) => current + 1);
+          }}
           onPress={() =>
             router.push({
               pathname: '/roommate/[id]',
@@ -94,7 +120,7 @@ export default function SwipeScreen() {
           </Text>
           {canUndo ? (
             <Pressable
-              onPress={() => setIndex((current) => Math.max(0, current - 1))}
+              onPress={undoLast}
               hitSlop={10}
               style={[styles.emptyUndo, { backgroundColor: colors.blueGrotto }]}
               accessibilityRole="button"

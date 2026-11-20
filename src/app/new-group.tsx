@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { profiles } from '@/data/data';
 import { useMessages } from '@/data/MessagesProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { reset, useFluidSize } from '@/theme/main';
@@ -21,7 +20,7 @@ import { reset, useFluidSize } from '@/theme/main';
 export default function NewGroupScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
-  const { createGroupChat } = useMessages();
+  const { createGroupChat, matchedProfiles } = useMessages();
   const titleSize = useFluidSize(22);
   const bodySize = useFluidSize(15);
 
@@ -36,8 +35,8 @@ export default function NewGroupScreen() {
   const onAccent = isDark ? '#14141C' : colors.ivory;
 
   const selected = useMemo(
-    () => profiles.filter((person) => selectedIds.includes(person.id)),
-    [selectedIds],
+    () => matchedProfiles.filter((person) => selectedIds.includes(person.id)),
+    [matchedProfiles, selectedIds],
   );
 
   const matches = useMemo(() => {
@@ -46,13 +45,13 @@ export default function NewGroupScreen() {
       return [];
     }
 
-    return profiles.filter((person) => {
+    return matchedProfiles.filter((person) => {
       if (selectedIds.includes(person.id)) {
         return false;
       }
       return person.name.toLowerCase().includes(trimmed);
     });
-  }, [query, selectedIds]);
+  }, [matchedProfiles, query, selectedIds]);
 
   const addMember = (id: number) => {
     setSelectedIds((current) => (current.includes(id) ? current : [...current, id]));
@@ -178,12 +177,16 @@ export default function NewGroupScreen() {
                 </Pressable>
               ))
             ) : (
-              <Text style={[styles.empty, { color: colors.blueIris }]}>No matches</Text>
+              <Text style={[styles.empty, { color: colors.blueIris }]}>
+                No matches with that name
+              </Text>
             )}
           </View>
         ) : (
           <Text style={[styles.hint, { color: `${colors.blueIris}99` }]}>
-            Start typing to find people from Roomiez.
+            {matchedProfiles.length
+              ? 'Start typing to find people you matched with.'
+              : 'Swipe right on people first — only matches can join a group.'}
           </Text>
         )}
       </ScrollView>
