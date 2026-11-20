@@ -80,7 +80,7 @@ export default function SettingsScreen() {
         </View>
 
         <SettingsLink
-          label="Create account"
+          label="Retake quiz"
           onPress={() => router.push('/create-account')}
           colors={colors}
           rowSize={rowSize}

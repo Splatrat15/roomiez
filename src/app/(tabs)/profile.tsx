@@ -213,15 +213,6 @@ export default function ProfileScreen() {
         >
           <ChipRow items={user.roommateDislikes} colors={colors} />
         </ProfileSection>
-
-        <Pressable
-          style={[styles.editButton, { backgroundColor: colors.roseQuartz }]}
-          onPress={() => router.push('/create-account')}
-        >
-          <Text style={[styles.editLabel, { color: isDark ? '#14141C' : colors.ivory }]}>
-            {user.quizCompleted ? 'Retake quiz' : 'Complete profile quiz'}
-          </Text>
-        </Pressable>
       </ScrollView>
     </View>
   );
@@ -377,17 +368,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
-  editButton: {
-    ...reset,
-    marginTop: 4,
-    paddingVertical: 12,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editLabel: {
-    ...reset,
-    fontWeight: '700',
-    fontSize: 15,
-  },
-});
+  });
