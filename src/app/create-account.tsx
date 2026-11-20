@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -29,7 +30,23 @@ type QuizDraft = {
   about: typeof defaultAbout;
   roommateLikes: string[];
   roommateDislikes: string[];
+  roommateLikesPrivate: boolean;
+  roommateDislikesPrivate: boolean;
 };
+
+function addCustomTags(list: string[], raw: string) {
+  const parts = raw
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const next = [...list];
+  for (const part of parts) {
+    if (!next.some((item) => item.toLowerCase() === part.toLowerCase())) {
+      next.push(part);
+    }
+  }
+  return next;
+}
 
 type Step =
   | { kind: 'gate' }
@@ -146,9 +163,13 @@ export default function CreateAccountScreen() {
     },
     roommateLikes: [...user.roommateLikes],
     roommateDislikes: [...user.roommateDislikes],
+    roommateLikesPrivate: user.roommateLikesPrivate,
+    roommateDislikesPrivate: user.roommateDislikesPrivate,
   }));
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [customLikes, setCustomLikes] = useState('');
+  const [customDislikes, setCustomDislikes] = useState('');
 
   const top = Platform.OS === 'web' ? 12 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
@@ -301,7 +322,7 @@ export default function CreateAccountScreen() {
             <Text style={[styles.body, { fontSize: bodySize, color: colors.blueIris }]}>
               {step.part === 1
                 ? 'Hobbies, habits, and lifestyle answers. These show on your profile and help people know you.'
-                : 'Pick qualities you want and ones you want to avoid. Likes are visible. Dislikes stay private and help recommendations.'}
+                : 'Pick qualities you want and ones you want to avoid. You can toggle each list private or visible, and add your own tags.'}
             </Text>
           </View>
         ) : null}
@@ -362,89 +383,73 @@ export default function CreateAccountScreen() {
         ) : null}
 
         {step?.kind === 'likes' ? (
-          <View style={styles.block}>
-            <Text style={[styles.kicker, { color: colors.blueGrotto }]}>Part 2 · Visible</Text>
-            <Text style={[styles.title, { fontSize: titleSize, color: colors.blueIris }]}>
-              What do you want in a roommate?
-            </Text>
-            <Text style={[styles.body, { fontSize: bodySize, color: colors.blueIris }]}>
-              These likes show on your profile and steer who gets recommended.
-            </Text>
-            <View style={styles.chips}>
-              {ROOMMATE_LIKE_OPTIONS.map((item) => {
-                const selected = draft.roommateLikes.includes(item);
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() =>
-                      setDraft((current) => ({
-                        ...current,
-                        roommateLikes: toggleItem(current.roommateLikes, item),
-                      }))
-                    }
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: selected ? colors.blueGrotto : colors.surface,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        { color: selected ? onAccent : colors.blueIris },
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
+          <PreferenceTagsStep
+            titleSize={titleSize}
+            bodySize={bodySize}
+            colors={colors}
+            onAccent={onAccent}
+            title="What do you want in a roommate?"
+            isPrivate={draft.roommateLikesPrivate}
+            onPrivateChange={(value) =>
+              setDraft((current) => ({ ...current, roommateLikesPrivate: value }))
+            }
+            options={ROOMMATE_LIKE_OPTIONS}
+            selected={draft.roommateLikes}
+            onToggle={(item) =>
+              setDraft((current) => ({
+                ...current,
+                roommateLikes: toggleItem(current.roommateLikes, item),
+              }))
+            }
+            customValue={customLikes}
+            onCustomChange={setCustomLikes}
+            onAddCustom={() => {
+              if (!customLikes.trim()) {
+                return;
+              }
+              setDraft((current) => ({
+                ...current,
+                roommateLikes: addCustomTags(current.roommateLikes, customLikes),
+              }));
+              setCustomLikes('');
+            }}
+            selectedColor={colors.blueGrotto}
+          />
         ) : null}
 
         {step?.kind === 'dislikes' ? (
-          <View style={styles.block}>
-            <Text style={[styles.kicker, { color: colors.roseQuartz }]}>Part 2 · Private</Text>
-            <Text style={[styles.title, { fontSize: titleSize, color: colors.blueIris }]}>
-              What would you dislike in a roommate?
-            </Text>
-            <Text style={[styles.body, { fontSize: bodySize, color: colors.blueIris }]}>
-              Only you see these. They quietly affect matching — other people never see this list.
-            </Text>
-            <View style={styles.chips}>
-              {ROOMMATE_DISLIKE_OPTIONS.map((item) => {
-                const selected = draft.roommateDislikes.includes(item);
-                return (
-                  <Pressable
-                    key={item}
-                    onPress={() =>
-                      setDraft((current) => ({
-                        ...current,
-                        roommateDislikes: toggleItem(current.roommateDislikes, item),
-                      }))
-                    }
-                    style={[
-                      styles.chip,
-                      {
-                        backgroundColor: selected ? colors.roseQuartz : colors.surface,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.chipText,
-                        { color: selected ? onAccent : colors.blueIris },
-                      ]}
-                    >
-                      {item}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
+          <PreferenceTagsStep
+            titleSize={titleSize}
+            bodySize={bodySize}
+            colors={colors}
+            onAccent={onAccent}
+            title="What would you dislike in a roommate?"
+            isPrivate={draft.roommateDislikesPrivate}
+            onPrivateChange={(value) =>
+              setDraft((current) => ({ ...current, roommateDislikesPrivate: value }))
+            }
+            options={ROOMMATE_DISLIKE_OPTIONS}
+            selected={draft.roommateDislikes}
+            onToggle={(item) =>
+              setDraft((current) => ({
+                ...current,
+                roommateDislikes: toggleItem(current.roommateDislikes, item),
+              }))
+            }
+            customValue={customDislikes}
+            onCustomChange={setCustomDislikes}
+            onAddCustom={() => {
+              if (!customDislikes.trim()) {
+                return;
+              }
+              setDraft((current) => ({
+                ...current,
+                roommateDislikes: addCustomTags(current.roommateDislikes, customDislikes),
+              }));
+              setCustomDislikes('');
+            }}
+            selectedColor={colors.roseQuartz}
+          />
         ) : null}
 
         {step?.kind === 'done' ? (
@@ -489,6 +494,131 @@ export default function CreateAccountScreen() {
           >
             {step?.kind === 'done' || atSectionEnd ? 'Save & back to profile' : 'Continue'}
           </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+function PreferenceTagsStep({
+  titleSize,
+  bodySize,
+  colors,
+  onAccent,
+  title,
+  isPrivate,
+  onPrivateChange,
+  options,
+  selected,
+  onToggle,
+  customValue,
+  onCustomChange,
+  onAddCustom,
+  selectedColor,
+}: {
+  titleSize: number;
+  bodySize: number;
+  colors: {
+    blueGrotto: string;
+    blueIris: string;
+    surface: string;
+    ivory: string;
+    roseQuartz: string;
+  };
+  onAccent: string;
+  title: string;
+  isPrivate: boolean;
+  onPrivateChange: (value: boolean) => void;
+  options: string[];
+  selected: string[];
+  onToggle: (item: string) => void;
+  customValue: string;
+  onCustomChange: (value: string) => void;
+  onAddCustom: () => void;
+  selectedColor: string;
+}) {
+  const chips = Array.from(new Set([...options, ...selected]));
+  const accent = isPrivate ? colors.roseQuartz : colors.blueGrotto;
+
+  return (
+    <View style={styles.block}>
+      <Text style={[styles.kicker, { color: accent }]}>
+        Part 2 · {isPrivate ? 'Private' : 'Visible'}
+      </Text>
+      <Text style={[styles.title, { fontSize: titleSize, color: colors.blueIris }]}>{title}</Text>
+      <Text style={[styles.body, { fontSize: bodySize, color: colors.blueIris }]}>
+        {isPrivate
+          ? 'Only you see this list. It can still quietly steer recommendations.'
+          : 'This list shows on your profile for other roommates to see.'}
+      </Text>
+
+      <View style={[styles.privacyRow, { backgroundColor: colors.surface }]}>
+        <View style={styles.privacyCopy}>
+          <Text style={[styles.privacyTitle, { color: colors.blueIris }]}>
+            {isPrivate ? 'Private' : 'Visible on profile'}
+          </Text>
+          <Text style={[styles.privacyHint, { color: colors.blueGrotto }]}>
+            Toggle whether other people can see these tags
+          </Text>
+        </View>
+        <Switch
+          value={isPrivate}
+          onValueChange={onPrivateChange}
+          trackColor={{ false: colors.blueGrotto, true: colors.roseQuartz }}
+          thumbColor={colors.ivory}
+        />
+      </View>
+
+      <View style={styles.chips}>
+        {chips.map((item) => {
+          const isSelected = selected.includes(item);
+          return (
+            <Pressable
+              key={item}
+              onPress={() => onToggle(item)}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: isSelected ? selectedColor : colors.surface,
+                },
+              ]}
+            >
+              <Text
+                style={[styles.chipText, { color: isSelected ? onAccent : colors.blueIris }]}
+              >
+                {item}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Text style={[styles.customLabel, { color: colors.blueGrotto }]}>
+        Add your own (comma separated)
+      </Text>
+      <View style={styles.customRow}>
+        <TextInput
+          value={customValue}
+          onChangeText={onCustomChange}
+          placeholder="e.g. cooks often, plant parent"
+          placeholderTextColor={`${colors.blueIris}88`}
+          style={[
+            styles.customInput,
+            {
+              color: colors.blueIris,
+              backgroundColor: colors.surface,
+              fontSize: bodySize,
+            },
+          ]}
+          onSubmitEditing={onAddCustom}
+          returnKeyType="done"
+        />
+        <Pressable
+          onPress={onAddCustom}
+          style={[styles.plusButton, { backgroundColor: accent }]}
+          accessibilityLabel="Add tags"
+        >
+          <Ionicons name="add" size={24} color={onAccent} />
         </Pressable>
       </View>
     </View>
@@ -756,6 +886,59 @@ const styles = StyleSheet.create({
   chipText: {
     ...reset,
     fontWeight: '600',
+  },
+  privacyRow: {
+    ...reset,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  privacyCopy: {
+    ...reset,
+    flex: 1,
+    gap: 2,
+  },
+  privacyTitle: {
+    ...reset,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  privacyHint: {
+    ...reset,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  customLabel: {
+    ...reset,
+    marginTop: 4,
+    fontWeight: '700',
+    fontSize: 12,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  customRow: {
+    ...reset,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  customInput: {
+    ...reset,
+    flex: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  plusButton: {
+    ...reset,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   options: {
     ...reset,

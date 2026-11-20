@@ -13,6 +13,8 @@ type QuizPayload = {
   about: UserAbout;
   roommateLikes: string[];
   roommateDislikes: string[];
+  roommateLikesPrivate: boolean;
+  roommateDislikesPrivate: boolean;
 };
 
 type UserContextValue = {
@@ -52,6 +54,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
           hobbies: saved.hobbies ?? current.hobbies,
           roommateLikes: saved.roommateLikes ?? current.roommateLikes,
           roommateDislikes: saved.roommateDislikes ?? current.roommateDislikes,
+          roommateLikesPrivate: saved.roommateLikesPrivate ?? current.roommateLikesPrivate,
+          roommateDislikesPrivate:
+            saved.roommateDislikesPrivate ?? current.roommateDislikesPrivate,
         }));
       })
       .finally(() => {
@@ -73,6 +78,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
         about: payload.about,
         roommateLikes: payload.roommateLikes,
         roommateDislikes: payload.roommateDislikes,
+        roommateLikesPrivate: payload.roommateLikesPrivate,
+        roommateDislikesPrivate: payload.roommateDislikesPrivate,
         description: payload.about.expressYourself.trim() || current.description,
         quizCompleted: true,
       };

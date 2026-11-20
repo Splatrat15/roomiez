@@ -68,26 +68,56 @@ function ProfileTile({ label, value, colors, wide }: TileProps) {
 function ChipRow({
   items,
   colors,
-  filled,
+  isPrivate,
+  showVisibility,
 }: {
   items: string[];
   colors: ThemeColors;
-  filled?: boolean;
+  isPrivate?: boolean;
+  showVisibility?: boolean;
 }) {
-  const filledText = filled ? colors.ivory : colors.blueIris;
+  const privateMode = Boolean(isPrivate);
 
   return (
-    <View style={styles.chips}>
-      {items.map((item) => (
+    <View style={styles.chipBlock}>
+      {showVisibility ? (
         <View
-          key={item}
-          style={[styles.chip, { backgroundColor: filled ? colors.blueGrotto : colors.ivory }]}
+          style={[
+            styles.visibilityBadge,
+            { backgroundColor: privateMode ? colors.roseQuartz : colors.blueGrotto },
+          ]}
         >
-          <Text style={[styles.chipText, { color: filled ? filledText : colors.blueIris }]}>
-            {item}
+          <Text style={[styles.visibilityBadgeText, { color: colors.ivory }]}>
+            {privateMode ? 'Private · only you' : 'Visible on profile'}
           </Text>
         </View>
-      ))}
+      ) : null}
+      <View style={styles.chips}>
+        {items.map((item) => (
+          <View
+            key={item}
+            style={[
+              styles.chip,
+              {
+                backgroundColor:
+                  showVisibility && !privateMode ? colors.blueGrotto : colors.ivory,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                {
+                  color:
+                    showVisibility && !privateMode ? colors.ivory : colors.blueIris,
+                },
+              ]}
+            >
+              {item}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -218,18 +248,29 @@ export default function ProfileScreen() {
         <ProfileSection
           title="Looking for in a roommate"
           colors={colors}
+          accent={user.roommateLikesPrivate ? colors.roseQuartz : colors.blueGrotto}
           onEdit={() => openQuiz('likes')}
         >
-          <ChipRow items={user.roommateLikes} colors={colors} filled />
+          <ChipRow
+            items={user.roommateLikes}
+            colors={colors}
+            isPrivate={user.roommateLikesPrivate}
+            showVisibility
+          />
         </ProfileSection>
 
         <ProfileSection
-          title="Private dislikes (only you)"
+          title="Dislikes in a roommate"
           colors={colors}
-          accent={colors.roseQuartz}
+          accent={user.roommateDislikesPrivate ? colors.roseQuartz : colors.blueGrotto}
           onEdit={() => openQuiz('dislikes')}
         >
-          <ChipRow items={user.roommateDislikes} colors={colors} />
+          <ChipRow
+            items={user.roommateDislikes}
+            colors={colors}
+            isPrivate={user.roommateDislikesPrivate}
+            showVisibility
+          />
         </ProfileSection>
       </ScrollView>
     </View>
@@ -375,6 +416,23 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '600',
   },
+chipBlock: {
+    ...reset,
+    gap: 10,
+  },
+  visibilityBadge: {
+    ...reset,
+    alignSelf: 'flex-start',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  visibilityBadgeText: {
+    ...reset,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
   chips: {
     ...reset,
     flexDirection: 'row',
@@ -392,4 +450,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 13,
   },
-  });
+});

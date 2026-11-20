@@ -4,8 +4,8 @@
  *
  * about = Part 1 questionnaire answers (visible)
  * hobbies = Part 1 (visible)
- * roommateLikes = Part 2 wants (visible, feeds matching)
- * roommateDislikes = Part 2 avoids (hidden from other roommates)
+ * roommateLikes / roommateDislikes = Part 2 matching tags
+ * roommateLikesPrivate / roommateDislikesPrivate = per-list visibility
  */
 export const defaultAbout = {
   cleanliness: 3,
@@ -44,6 +44,8 @@ export const currentUser = {
   about: { ...defaultAbout },
   roommateLikes: ['Clean & tidy', 'Good communicator', 'Handles chores fairly'],
   roommateDislikes: ['Messy common areas', 'Surprise guests', 'Ignores quiet hours'],
+  roommateLikesPrivate: false,
+  roommateDislikesPrivate: true,
   quizCompleted: false,
 };
 
@@ -56,5 +58,7 @@ export function createEmptyQuizDraft() {
     },
     roommateLikes: /** @type {string[]} */ ([]),
     roommateDislikes: /** @type {string[]} */ ([]),
+    roommateLikesPrivate: false,
+    roommateDislikesPrivate: true,
   };
 }
