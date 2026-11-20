@@ -19,13 +19,15 @@ import {
   HOBBY_OPTIONS,
   ROOMMATE_DISLIKE_OPTIONS,
   ROOMMATE_LIKE_OPTIONS,
+  YEAR_OPTIONS,
 } from '@/data/quiz';
-import { defaultAbout } from '@/data/user';
+import { defaultAbout, defaultEducation } from '@/data/user';
 import { useUser } from '@/data/UserProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { reset, useFluidSize } from '@/theme/main';
 
 type QuizDraft = {
+  education: typeof defaultEducation;
   hobbies: string[];
   about: typeof defaultAbout;
   roommateLikes: string[];
@@ -51,6 +53,7 @@ function addCustomTags(list: string[], raw: string) {
 type Step =
   | { kind: 'gate' }
   | { kind: 'partIntro'; part: 1 | 2 }
+  | { kind: 'education' }
   | { kind: 'hobbies' }
   | { kind: 'about'; index: number }
   | { kind: 'likes' }
@@ -62,6 +65,7 @@ function buildSteps(): Step[] {
   return [
     { kind: 'gate' },
     { kind: 'partIntro', part: 1 },
+    { kind: 'education' },
     { kind: 'hobbies' },
     ...aboutSteps,
     { kind: 'partIntro', part: 2 },
@@ -74,6 +78,10 @@ function buildSteps(): Step[] {
 function findSectionStepIndex(steps: Step[], section?: string) {
   if (!section) {
     return 0;
+  }
+
+  if (section === 'education') {
+    return steps.findIndex((step) => step.kind === 'education');
   }
 
   if (section === 'hobbies') {
@@ -104,6 +112,10 @@ function findSectionStepIndex(steps: Step[], section?: string) {
 function findSectionEndStepIndex(steps: Step[], section?: string) {
   if (!section) {
     return -1;
+  }
+
+  if (section === 'education') {
+    return steps.findIndex((step) => step.kind === 'education');
   }
 
   if (section === 'hobbies') {
@@ -152,6 +164,10 @@ export default function CreateAccountScreen() {
 
   const [stepIndex, setStepIndex] = useState(initialStep);
   const [draft, setDraft] = useState<QuizDraft>(() => ({
+    education: {
+      ...defaultEducation,
+      ...user.education,
+    },
     hobbies: [...user.hobbies],
     about: {
       ...defaultAbout,
@@ -213,6 +229,14 @@ export default function CreateAccountScreen() {
     }
     if (step.kind === 'gate') {
       return email.trim().length > 3 && password.trim().length > 3;
+    }
+    if (step.kind === 'education') {
+      return (
+        draft.education.school.trim().length > 0 &&
+        draft.education.district.trim().length > 0 &&
+        draft.education.building.trim().length > 0 &&
+        draft.education.year.trim().length > 0
+      );
     }
     if (step.kind === 'hobbies') {
       return draft.hobbies.length > 0;
@@ -324,6 +348,86 @@ export default function CreateAccountScreen() {
                 ? 'Hobbies, habits, and lifestyle answers. These show on your profile and help people know you.'
                 : 'Pick qualities you want and ones you want to avoid. You can toggle each list private or visible, and add your own tags.'}
             </Text>
+          </View>
+        ) : null}
+
+        {step?.kind === 'education' ? (
+          <View style={styles.block}>
+            <Text style={[styles.kicker, { color: colors.blueGrotto }]}>Part 1 · Education</Text>
+            <Text style={[styles.title, { fontSize: titleSize, color: colors.blueIris }]}>
+              Where do you go to school?
+            </Text>
+            <Text style={[styles.body, { fontSize: bodySize, color: colors.blueIris }]}>
+              School, district, and building — so roommates know where you are on campus.
+            </Text>
+            <TextInput
+              value={draft.education.school}
+              onChangeText={(text) =>
+                setDraft((current) => ({
+                  ...current,
+                  education: { ...current.education, school: text },
+                }))
+              }
+              placeholder="School (e.g. ASU Tempe)"
+              placeholderTextColor={`${colors.blueIris}88`}
+              style={[styles.input, { color: colors.blueIris, backgroundColor: colors.surface }]}
+            />
+            <TextInput
+              value={draft.education.district}
+              onChangeText={(text) =>
+                setDraft((current) => ({
+                  ...current,
+                  education: { ...current.education, district: text },
+                }))
+              }
+              placeholder="District (e.g. Barrett)"
+              placeholderTextColor={`${colors.blueIris}88`}
+              style={[styles.input, { color: colors.blueIris, backgroundColor: colors.surface }]}
+            />
+            <TextInput
+              value={draft.education.building}
+              onChangeText={(text) =>
+                setDraft((current) => ({
+                  ...current,
+                  education: { ...current.education, building: text },
+                }))
+              }
+              placeholder="Building (e.g. Barrett)"
+              placeholderTextColor={`${colors.blueIris}88`}
+              style={[styles.input, { color: colors.blueIris, backgroundColor: colors.surface }]}
+            />
+            <Text style={[styles.customLabel, { color: colors.blueGrotto }]}>Year</Text>
+            <View style={styles.chips}>
+              {YEAR_OPTIONS.map((year) => {
+                const selected = draft.education.year === year;
+                return (
+                  <Pressable
+                    key={year}
+                    onPress={() =>
+                      setDraft((current) => ({
+                        ...current,
+                        education: { ...current.education, year },
+                      }))
+                    }
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: selected ? colors.blueGrotto : colors.surface,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        { color: selected ? onAccent : colors.blueIris },
+                      ]}
+                    >
+                      {year}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
         ) : null}
 
