@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { profiles } from '@/data/data';
@@ -51,7 +51,11 @@ export default function MessagesScreen() {
     >
       <Text style={[styles.title, { fontSize: titleSize, color: colors.blueIris }]}>Messages</Text>
 
-      <View style={styles.list}>
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 24 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
         {threads.map((thread) => {
           if (!thread) {
             return null;
@@ -91,7 +95,7 @@ export default function MessagesScreen() {
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -111,6 +115,10 @@ const styles = StyleSheet.create({
   list: {
     ...reset,
     flex: 1,
+  },
+  listContent: {
+    ...reset,
+    flexGrow: 1,
   },
   row: {
     ...reset,
