@@ -1,23 +1,101 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import type { ReactNode } from 'react';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useUser } from '@/data/UserProvider';
 import { useTheme } from '@/theme/ThemeProvider';
-import { reset, useFluidSize } from '@/theme/main';
+import { reset, useFluidSize, type ThemeColors } from '@/theme/main';
 
-function Fact({ label, value, colors }: { label: string; value: string; colors: any }) {
+type TileProps = {
+  label: string;
+  value: string;
+  colors: ThemeColors;
+  wide?: boolean;
+  onEdit?: () => void;
+};
+
+function ProfileSection({
+  title,
+  colors,
+  children,
+  accent,
+}: {
+  title: string;
+  colors: ThemeColors;
+  children: ReactNode;
+  accent?: string;
+}) {
+  return (
+    <View style={[styles.sectionCard, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.sectionLabel, { color: accent ?? colors.blueGrotto }]}>{title}</Text>
+      {children}
+    </View>
+  );
+}
+
+function ProfileTile({ label, value, colors, wide, onEdit }: TileProps) {
   if (!value) {
     return null;
   }
 
   return (
-    <View style={styles.fact}>
-      <Text style={[styles.factLabel, { color: colors.blueGrotto }]}>{label}</Text>
-      <Text style={[styles.factValue, { color: colors.blueIris }]}>{value}</Text>
-    </View>
+    <Pressable
+      onPress={onEdit}
+      style={[
+        styles.tile,
+        wide ? styles.tileWide : styles.tileHalf,
+        { backgroundColor: colors.ivory },
+      ]}
+    >
+      <View style={styles.tileTop}>
+        <Text style={[styles.tileLabel, { color: colors.blueGrotto }]}>{label}</Text>
+        {onEdit ? <Ionicons name="pencil" size={14} color={colors.blueGrotto} /> : null}
+      </View>
+      <Text style={[styles.tileValue, { color: colors.blueIris }]}>{value}</Text>
+    </Pressable>
+  );
+}
+
+function ChipRow({
+  items,
+  colors,
+  filled,
+  onEdit,
+}: {
+  items: string[];
+  colors: ThemeColors;
+  filled?: boolean;
+  onEdit?: () => void;
+}) {
+  const filledText = filled ? colors.ivory : colors.blueIris;
+
+  return (
+    <Pressable onPress={onEdit} style={styles.chipBlock}>
+      <View style={styles.chips}>
+        {items.map((item) => (
+          <View
+            key={item}
+            style={[
+              styles.chip,
+              { backgroundColor: filled ? colors.blueGrotto : colors.ivory },
+            ]}
+          >
+            <Text style={[styles.chipText, { color: filled ? filledText : colors.blueIris }]}>
+              {item}
+            </Text>
+          </View>
+        ))}
+      </View>
+      {onEdit ? (
+        <View style={styles.editHint}>
+          <Ionicons name="pencil" size={14} color={colors.blueGrotto} />
+          <Text style={[styles.editHintText, { color: colors.blueGrotto }]}>Tap to edit</Text>
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
@@ -28,7 +106,6 @@ export default function ProfileScreen() {
   const nameSize = useFluidSize(32);
   const metaSize = useFluidSize(15);
   const bodySize = useFluidSize(15);
-  const sectionSize = useFluidSize(13);
 
   const top = Platform.OS === 'web' ? 0 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
@@ -40,6 +117,7 @@ export default function ProfileScreen() {
   const allergyLine = about.allergies.has
     ? about.allergies.details || 'Yes'
     : 'No allergies listed';
+  const openQuiz = () => router.push('/create-account');
 
   return (
     <View
@@ -88,78 +166,109 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <View style={styles.about}>
-          <Text style={[styles.sectionLabel, { fontSize: sectionSize, color: colors.blueGrotto }]}>
-            About me
-          </Text>
-          <Text style={[styles.bio, { fontSize: bodySize, color: colors.blueIris }]}>
-            {about.expressYourself.trim() || user.description}
-          </Text>
-        </View>
+        <ProfileSection title="About me" colors={colors}>
+          <Pressable onPress={openQuiz} style={[styles.bioCard, { backgroundColor: colors.ivory }]}>
+            <View style={styles.tileTop}>
+              <Text style={[styles.tileLabel, { color: colors.blueGrotto }]}>Express yourself</Text>
+              <Ionicons name="pencil" size={14} color={colors.blueGrotto} />
+            </View>
+            <Text style={[styles.bio, { fontSize: bodySize, color: colors.blueIris }]}>
+              {about.expressYourself.trim() || user.description}
+            </Text>
+          </Pressable>
+        </ProfileSection>
 
-        <View style={styles.about}>
-          <Text style={[styles.sectionLabel, { fontSize: sectionSize, color: colors.blueGrotto }]}>
-            Hobbies
-          </Text>
-          <View style={styles.chips}>
-            {user.hobbies.map((hobby) => (
-              <View key={hobby} style={[styles.chip, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.chipText, { color: colors.blueIris }]}>{hobby}</Text>
-              </View>
-            ))}
+        <ProfileSection title="Hobbies" colors={colors}>
+          <ChipRow items={user.hobbies} colors={colors} onEdit={openQuiz} />
+        </ProfileSection>
+
+        <ProfileSection title="Lifestyle" colors={colors}>
+          <View style={styles.tileGrid}>
+            <ProfileTile
+              label="Cleanliness"
+              value={`${about.cleanliness} / 5`}
+              colors={colors}
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Looking for"
+              value={about.roommateCloseness}
+              colors={colors}
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Schedule"
+              value={about.schedule}
+              colors={colors}
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Past midnight"
+              value={about.pastMidnight}
+              colors={colors}
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Study vibe"
+              value={about.quietStudy}
+              colors={colors}
+              wide
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Guests"
+              value={about.guests}
+              colors={colors}
+              wide
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Affection in shared spaces"
+              value={about.affection}
+              colors={colors}
+              wide
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Animals"
+              value={about.animals}
+              colors={colors}
+              wide
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Sleep"
+              value={about.sleepNeeds}
+              colors={colors}
+              wide
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Medical"
+              value={about.medicalConditions || 'None listed'}
+              colors={colors}
+              onEdit={openQuiz}
+            />
+            <ProfileTile
+              label="Allergies"
+              value={allergyLine}
+              colors={colors}
+              onEdit={openQuiz}
+            />
           </View>
-        </View>
+        </ProfileSection>
 
-        <View style={styles.about}>
-          <Text style={[styles.sectionLabel, { fontSize: sectionSize, color: colors.blueGrotto }]}>
-            Lifestyle
-          </Text>
-          <Fact label="Cleanliness" value={`${about.cleanliness} / 5`} colors={colors} />
-          <Fact label="Looking for" value={about.roommateCloseness} colors={colors} />
-          <Fact label="Guests" value={about.guests} colors={colors} />
-          <Fact label="Affection in shared spaces" value={about.affection} colors={colors} />
-          <Fact label="Study vibe" value={about.quietStudy} colors={colors} />
-          <Fact label="Schedule" value={about.schedule} colors={colors} />
-          <Fact label="Past midnight" value={about.pastMidnight} colors={colors} />
-          <Fact label="Animals" value={about.animals} colors={colors} />
-          <Fact label="Sleep" value={about.sleepNeeds} colors={colors} />
-          <Fact label="Medical" value={about.medicalConditions || 'None listed'} colors={colors} />
-          <Fact label="Allergies" value={allergyLine} colors={colors} />
-        </View>
+        <ProfileSection title="Looking for in a roommate" colors={colors}>
+          <ChipRow items={user.roommateLikes} colors={colors} filled onEdit={openQuiz} />
+        </ProfileSection>
 
-        <View style={styles.about}>
-          <Text style={[styles.sectionLabel, { fontSize: sectionSize, color: colors.blueGrotto }]}>
-            Looking for in a roommate
-          </Text>
-          <View style={styles.chips}>
-            {user.roommateLikes.map((item) => (
-              <View key={item} style={[styles.chip, { backgroundColor: colors.blueGrotto }]}>
-                <Text
-                  style={[styles.chipText, { color: isDark ? '#14141C' : colors.ivory }]}
-                >
-                  {item}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.about}>
-          <Text style={[styles.sectionLabel, { fontSize: sectionSize, color: colors.roseQuartz }]}>
-            Private dislikes (only you)
-          </Text>
-          <View style={styles.chips}>
-            {user.roommateDislikes.map((item) => (
-              <View key={item} style={[styles.chip, { backgroundColor: colors.surface }]}>
-                <Text style={[styles.chipText, { color: colors.blueIris }]}>{item}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+        <ProfileSection title="Private dislikes (only you)" colors={colors} accent={colors.roseQuartz}>
+          <ChipRow items={user.roommateDislikes} colors={colors} onEdit={openQuiz} />
+        </ProfileSection>
 
         <Pressable
           style={[styles.editButton, { backgroundColor: colors.roseQuartz }]}
-          onPress={() => router.push('/create-account')}
+          onPress={openQuiz}
         >
           <Text style={[styles.editLabel, { color: isDark ? '#14141C' : colors.ivory }]}>
             {user.quizCompleted ? 'Retake quiz' : 'Complete profile quiz'}
@@ -205,7 +314,7 @@ const styles = StyleSheet.create({
   content: {
     ...reset,
     paddingHorizontal: 16,
-    gap: 14,
+    gap: 12,
   },
   hero: {
     ...reset,
@@ -239,33 +348,72 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     opacity: 0.9,
   },
-  about: {
+  sectionCard: {
     ...reset,
-    gap: 8,
+    borderRadius: 18,
+    padding: 14,
+    gap: 10,
   },
   sectionLabel: {
     ...reset,
     fontWeight: '700',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
+    fontSize: 12,
+  },
+  bioCard: {
+    ...reset,
+    borderRadius: 14,
+    padding: 12,
+    gap: 6,
   },
   bio: {
     ...reset,
     lineHeight: 22,
   },
-  fact: {
+  tileGrid: {
     ...reset,
-    gap: 2,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  factLabel: {
+  tile: {
     ...reset,
-    fontSize: 12,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    gap: 6,
+  },
+  tileHalf: {
+    width: '48.5%',
+    flexGrow: 1,
+  },
+  tileWide: {
+    width: '100%',
+  },
+  tileTop: {
+    ...reset,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  tileLabel: {
+    ...reset,
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
-  factValue: {
+  tileValue: {
     ...reset,
     fontSize: 14,
     lineHeight: 20,
+    fontWeight: '600',
+  },
+  chipBlock: {
+    ...reset,
+    gap: 8,
   },
   chips: {
     ...reset,
@@ -283,6 +431,17 @@ const styles = StyleSheet.create({
     ...reset,
     fontWeight: '600',
     fontSize: 13,
+  },
+  editHint: {
+    ...reset,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  editHintText: {
+    ...reset,
+    fontSize: 12,
+    fontWeight: '600',
   },
   editButton: {
     ...reset,
