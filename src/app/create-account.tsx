@@ -83,6 +83,39 @@ function findSectionStepIndex(steps: Step[], section?: string) {
   return 0;
 }
 
+/** Last step for a pencil-edit section. After this, save and return to profile. */
+function findSectionEndStepIndex(steps: Step[], section?: string) {
+  if (!section) {
+    return -1;
+  }
+
+  if (section === 'hobbies') {
+    return steps.findIndex((step) => step.kind === 'hobbies');
+  }
+
+  if (section === 'likes') {
+    return steps.findIndex((step) => step.kind === 'likes');
+  }
+
+  if (section === 'dislikes') {
+    return steps.findIndex((step) => step.kind === 'dislikes');
+  }
+
+  if (section === 'about') {
+    const oneWordIndex = ABOUT_QUESTIONS.findIndex(
+      (question) => question.id === 'oneWordDescribeMe',
+    );
+    return steps.findIndex((step) => step.kind === 'about' && step.index === oneWordIndex);
+  }
+
+  if (section === 'lifestyle') {
+    const allergiesIndex = ABOUT_QUESTIONS.findIndex((question) => question.id === 'allergies');
+    return steps.findIndex((step) => step.kind === 'about' && step.index === allergiesIndex);
+  }
+
+  return -1;
+}
+
 function toggleItem(list: string[], value: string) {
   return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 }
@@ -96,7 +129,9 @@ export default function CreateAccountScreen() {
   const bodySize = useFluidSize(15);
   const steps = useMemo(() => buildSteps(), []);
   const initialStep = Math.max(0, findSectionStepIndex(steps, section));
+  const sectionEndStep = useMemo(() => findSectionEndStepIndex(steps, section), [steps, section]);
   const entryStepRef = useRef(initialStep);
+  const isSectionEdit = Boolean(section) && sectionEndStep >= 0;
 
   const [stepIndex, setStepIndex] = useState(initialStep);
   const [draft, setDraft] = useState<QuizDraft>(() => ({
@@ -121,7 +156,13 @@ export default function CreateAccountScreen() {
   const bottom = Platform.OS === 'web' ? 16 : Math.max(insets.bottom, 16);
 
   const step = steps[stepIndex];
-  const progress = stepIndex / Math.max(steps.length - 1, 1);
+  const atSectionEnd = isSectionEdit && stepIndex === sectionEndStep;
+  const sectionSpan = Math.max(sectionEndStep - entryStepRef.current, 0);
+  const progress = isSectionEdit
+    ? sectionSpan === 0
+      ? 1
+      : (stepIndex - entryStepRef.current) / sectionSpan
+    : stepIndex / Math.max(steps.length - 1, 1);
   const onAccent = isDark ? '#14141C' : colors.ivory;
 
   const goNext = () => setStepIndex((current) => Math.min(current + 1, steps.length - 1));
@@ -138,6 +179,11 @@ export default function CreateAccountScreen() {
     Alert.alert('Profile saved', 'Your quiz answers now show on your profile.', [
       { text: 'View profile', onPress: () => router.replace('/(tabs)/profile') },
     ]);
+  };
+
+  const finishSection = async () => {
+    await saveQuizAnswers(draft);
+    router.replace('/(tabs)/profile');
   };
 
   const canContinue = () => {
@@ -428,6 +474,10 @@ export default function CreateAccountScreen() {
               void finish();
               return;
             }
+            if (atSectionEnd) {
+              void finishSection();
+              return;
+            }
             goNext();
           }}
         >
@@ -437,7 +487,7 @@ export default function CreateAccountScreen() {
               { color: canContinue() ? onAccent : colors.blueIris },
             ]}
           >
-            {step?.kind === 'done' ? 'Save profile' : 'Continue'}
+            {step?.kind === 'done' || atSectionEnd ? 'Save & back to profile' : 'Continue'}
           </Text>
         </Pressable>
       </View>
