@@ -15,23 +15,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { profiles } from '@/data/data';
-import { getConversation } from '@/data/messages';
+import { useMessages, type ChatMessage } from '@/data/MessagesProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { reset, useFluidSize } from '@/theme/main';
-
-type Bubble = {
-  id: string;
-  sender: 'me' | 'them';
-  text: string;
-};
-
-function asBubbles(list: { id: string; sender: string; text: string }[] | undefined): Bubble[] {
-  return (list ?? []).map((message) => ({
-    id: message.id,
-    sender: message.sender === 'me' ? 'me' : 'them',
-    text: message.text,
-  }));
-}
 
 function firstName(fullName: string) {
   return fullName.split(' ')[0] ?? fullName;
@@ -41,18 +27,26 @@ export default function MessageThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
+  const { getConversation, appendMessage } = useMessages();
   const scrollRef = useRef<any>(null);
   const nameSize = useFluidSize(17);
   const bodySize = useFluidSize(16);
 
   const conversation = getConversation(id);
-  const profile = profiles.find((person) => person.id === conversation?.profileId);
+  const profile = conversation?.isGroup
+    ? null
+    : profiles.find((person) => person.id === conversation?.profileId);
+  const groupMembers = conversation?.isGroup
+    ? (conversation.memberIds ?? [])
+        .map((memberId) => profiles.find((person) => person.id === memberId))
+        .filter(Boolean)
+    : [];
 
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<Bubble[]>(() => asBubbles(conversation?.messages));
+  const [messages, setMessages] = useState<ChatMessage[]>(() => conversation?.messages ?? []);
 
   useEffect(() => {
-    setMessages(asBubbles(conversation?.messages));
+    setMessages(conversation?.messages ?? []);
   }, [conversation]);
 
   const top = Platform.OS === 'web' ? 12 : insets.top;
@@ -61,7 +55,13 @@ export default function MessageThreadScreen() {
   const bottom = Platform.OS === 'web' ? 10 : Math.max(insets.bottom, 10);
   const mineText = isDark ? '#14141C' : colors.ivory;
 
-  if (!conversation || !profile) {
+  const headerTitle = conversation?.isGroup
+    ? conversation.title || 'Group chat'
+    : profile
+      ? firstName(profile.name)
+      : '';
+
+  if (!conversation || (!conversation.isGroup && !profile)) {
     return (
       <View style={[styles.screen, { paddingTop: top, backgroundColor: colors.ivory }]}>
         <Pressable style={styles.back} onPress={() => router.back()} hitSlop={12}>
@@ -81,14 +81,14 @@ export default function MessageThreadScreen() {
       return;
     }
 
-    setMessages((current) => [
-      ...current,
-      {
-        id: `${conversation.id}-${Date.now()}`,
-        sender: 'me',
-        text,
-      },
-    ]);
+    const message: ChatMessage = {
+      id: `${conversation.id}-${Date.now()}`,
+      sender: 'me',
+      text,
+    };
+
+    setMessages((current) => [...current, message]);
+    appendMessage(conversation.id, message);
     setDraft('');
     requestAnimationFrame(() => {
       scrollRef.current?.scrollToEnd?.({ animated: true });
@@ -112,16 +112,53 @@ export default function MessageThreadScreen() {
         <Pressable style={styles.back} onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="chevron-back" size={28} color={colors.blueGrotto} />
         </Pressable>
-        <Image
-          source={profile.image}
-          style={[styles.headerAvatar, { backgroundColor: colors.blueIris }]}
-        />
-        <Text
-          style={[styles.headerName, { fontSize: nameSize, color: colors.blueIris }]}
-          numberOfLines={1}
-        >
-          {firstName(profile.name)}
-        </Text>
+        {conversation.isGroup ? (
+          <View style={styles.groupHeaderAvatar}>
+            {groupMembers[0] ? (
+              <Image
+                source={groupMembers[0].image}
+                style={[styles.headerAvatarSmall, { backgroundColor: colors.blueIris }]}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.headerAvatar,
+                  styles.groupFallback,
+                  { backgroundColor: colors.blueGrotto },
+                ]}
+              >
+                <Ionicons name="people" size={18} color={colors.ivory} />
+              </View>
+            )}
+            {groupMembers[1] ? (
+              <Image
+                source={groupMembers[1].image}
+                style={[
+                  styles.headerAvatarOverlap,
+                  { backgroundColor: colors.blueIris, borderColor: colors.ivory },
+                ]}
+              />
+            ) : null}
+          </View>
+        ) : (
+          <Image
+            source={profile!.image}
+            style={[styles.headerAvatar, { backgroundColor: colors.blueIris }]}
+          />
+        )}
+        <View style={styles.headerCopy}>
+          <Text
+            style={[styles.headerName, { fontSize: nameSize, color: colors.blueIris }]}
+            numberOfLines={1}
+          >
+            {headerTitle}
+          </Text>
+          {conversation.isGroup ? (
+            <Text style={[styles.headerSub, { color: colors.blueGrotto }]} numberOfLines={1}>
+              {groupMembers.map((person) => firstName(person!.name)).join(', ')}
+            </Text>
+          ) : null}
+        </View>
       </View>
 
       <ScrollView
@@ -224,10 +261,47 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 18,
   },
-  headerName: {
+  groupHeaderAvatar: {
+    ...reset,
+    width: 44,
+    height: 36,
+  },
+  headerAvatarSmall: {
+    ...reset,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    position: 'absolute',
+    left: 0,
+    top: 4,
+  },
+  headerAvatarOverlap: {
+    ...reset,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    borderWidth: 2,
+  },
+  groupFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerCopy: {
     ...reset,
     flex: 1,
+    gap: 2,
+  },
+  headerName: {
+    ...reset,
     fontWeight: '700',
+  },
+  headerSub: {
+    ...reset,
+    fontSize: 12,
+    opacity: 0.9,
   },
   thread: {
     ...reset,

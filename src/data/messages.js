@@ -1,8 +1,9 @@
 /**
- * Inbox threads. profileId maps to src/data/data.js.
+ * Inbox threads. profileId maps to src/data/data.js for 1:1 chats.
+ * Groups use memberIds + title instead.
  * sender: 'me' | 'them'
  */
-export const conversations = [
+export const seedConversations = [
   {
     id: '6',
     profileId: 6,
@@ -465,20 +466,32 @@ export const conversations = [
   },
 ];
 
-export function getConversation(id) {
-  return conversations.find((conversation) => String(conversation.id) === String(id));
-}
+/** @deprecated use seedConversations + MessagesProvider */
+export const conversations = seedConversations;
 
 export function getLastMessage(conversation) {
-  return conversation.messages[conversation.messages.length - 1];
+  return conversation?.messages?.[conversation.messages.length - 1];
 }
 
-export function formatPreview(conversation, firstName) {
+export function formatPreview(conversation, label) {
   const last = getLastMessage(conversation);
   if (!last) {
     return 'No messages yet';
   }
 
-  const who = last.sender === 'me' ? 'You' : firstName;
+  const who = last.sender === 'me' ? 'You' : label;
   return `${who}: ${last.text}`;
+}
+
+export function groupTitleFromNames(names) {
+  if (!names.length) {
+    return 'Group chat';
+  }
+  if (names.length === 1) {
+    return names[0];
+  }
+  if (names.length === 2) {
+    return `${names[0]} & ${names[1]}`;
+  }
+  return `${names[0]}, ${names[1]} +${names.length - 2}`;
 }
