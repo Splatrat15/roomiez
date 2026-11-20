@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -51,6 +52,12 @@ export default function SwipeScreen() {
           key={profile.id}
           profile={profile}
           onSwiped={() => setIndex((current) => current + 1)}
+          onPress={() =>
+            router.push({
+              pathname: '/roommate/[id]',
+              params: { id: String(profile.id) },
+            })
+          }
         />
       ) : (
         <View style={styles.empty}>

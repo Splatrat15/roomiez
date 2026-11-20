@@ -25,11 +25,12 @@ export type SwipeProfile = {
 type SwipeCardProps = {
   profile: SwipeProfile;
   onSwiped: (direction: 'left' | 'right') => void;
+  onPress: () => void;
 };
 
 const SWIPE_THRESHOLD = 110;
 
-export function SwipeCard({ profile, onSwiped }: SwipeCardProps) {
+export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
   const { width: windowWidth } = useWindowDimensions();
   const width = Math.min(windowWidth, layout.frameMaxWidth);
   const cardWidth = Math.round(width * 0.76);
@@ -46,7 +47,12 @@ export function SwipeCard({ profile, onSwiped }: SwipeCardProps) {
     onSwiped(direction);
   };
 
+  const tap = Gesture.Tap().onEnd(() => {
+    runOnJS(onPress)();
+  });
+
   const pan = Gesture.Pan()
+    .activeOffsetX([-18, 18])
     .onUpdate((event) => {
       translateX.value = event.translationX;
       translateY.value = event.translationY * 0.12;
@@ -69,6 +75,9 @@ export function SwipeCard({ profile, onSwiped }: SwipeCardProps) {
       translateX.value = withSpring(0, { damping: 18, stiffness: 180 });
       translateY.value = withSpring(0, { damping: 18, stiffness: 180 });
     });
+
+  // Drag wins once it moves sideways; a plain tap opens the detail page.
+  const gesture = Gesture.Exclusive(pan, tap);
 
   const cardStyle = useAnimatedStyle(() => {
     const rotate = interpolate(
@@ -113,7 +122,7 @@ export function SwipeCard({ profile, onSwiped }: SwipeCardProps) {
         <Ionicons name="checkmark-circle" size={iconSize} color={colors.likeGreenDeep} />
       </Animated.View>
 
-      <GestureDetector gesture={pan}>
+      <GestureDetector gesture={gesture}>
         <Animated.View style={[styles.card, { width: cardWidth }, cardStyle]}>
           <View style={[styles.imageFrame, { height: imageHeight }]}>
             <Image source={profile.image} style={styles.image} resizeMode="cover" />
