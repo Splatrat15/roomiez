@@ -127,7 +127,7 @@ export default function ProfileScreen() {
   const { colors, isDark } = useTheme();
   const { user } = useUser();
   const nameSize = useFluidSize(32);
-  const metaSize = useFluidSize(15);
+  const tagSize = useFluidSize(12);
   const bodySize = useFluidSize(15);
 
   const top = Platform.OS === 'web' ? 0 : insets.top;
@@ -135,11 +135,14 @@ export default function ProfileScreen() {
   const right = Platform.OS === 'web' ? 0 : insets.right;
   const bottom = Platform.OS === 'web' ? 16 : Math.max(insets.bottom, 8);
 
-  const overlayText = isDark ? '#E4E3D0' : colors.ivory;
+  const overlayText = '#E4E3D0';
   const about = user.about;
   const allergyLine = about.allergies.has
     ? about.allergies.details || 'Yes'
     : 'No allergies listed';
+  const oneWord = about.oneWordDescribeMe.trim() || 'Roommate';
+  const heroTags = [`${user.age}`, user.gender, oneWord];
+  const heroDescription = about.expressYourself.trim() || user.description;
   const openQuiz = (section: 'about' | 'hobbies' | 'lifestyle' | 'likes' | 'dislikes') =>
     router.push({
       pathname: '/create-account',
@@ -185,10 +188,32 @@ export default function ProfileScreen() {
           />
           <View style={styles.heroCopy}>
             <Text style={[styles.heroName, { fontSize: nameSize, color: overlayText }]}>
-              {user.name.split(' ')[0]}, {user.age}
+              {user.name.split(' ')[0]}
             </Text>
-            <Text style={[styles.heroMeta, { fontSize: metaSize, color: overlayText }]}>
-              {user.gender}
+            <View style={styles.heroTags}>
+              {heroTags.map((tag) => (
+                <View
+                  key={tag}
+                  style={[
+                    styles.heroTag,
+                    {
+                      backgroundColor: isDark
+                        ? 'rgba(228, 227, 208, 0.18)'
+                        : 'rgba(228, 227, 208, 0.22)',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.heroTagText, { fontSize: tagSize, color: overlayText }]}>
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
+            <Text
+              style={[styles.heroDescription, { fontSize: bodySize, color: overlayText }]}
+              numberOfLines={3}
+            >
+              {heroDescription}
             </Text>
           </View>
         </View>
@@ -335,16 +360,33 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 16,
-    gap: 2,
+    gap: 10,
   },
   heroName: {
     ...reset,
     fontWeight: '700',
   },
-  heroMeta: {
+  heroTags: {
     ...reset,
-    fontWeight: '600',
-    opacity: 0.9,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  heroTag: {
+    ...reset,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  heroTagText: {
+    ...reset,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  heroDescription: {
+    ...reset,
+    lineHeight: 18,
+    opacity: 0.95,
   },
   sectionCard: {
     ...reset,
