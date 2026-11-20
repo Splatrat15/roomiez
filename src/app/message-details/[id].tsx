@@ -1,6 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
@@ -26,7 +25,7 @@ function firstName(fullName: string) {
 export default function MessageDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const {
     getConversation,
     setConversationNotes,
@@ -48,18 +47,12 @@ export default function MessageDetailsScreen() {
         .filter(Boolean)
     : [];
 
-  const [notes, setNotes] = useState(conversation?.notes ?? '');
-
-  useEffect(() => {
-    setNotes(conversation?.notes ?? '');
-  }, [conversation?.id, conversation?.notes]);
-
   const top = Platform.OS === 'web' ? 12 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
   const right = Platform.OS === 'web' ? 0 : insets.right;
   const bottom = Platform.OS === 'web' ? 16 : Math.max(insets.bottom, 16);
-  const onAccent = isDark ? '#14141C' : colors.ivory;
-  const danger = '#C23B4B';
+  const onAccent = colors.ivory;
+  const danger = colors.rejectRedDeep;
 
   if (!conversation || (!conversation.isGroup && !profile)) {
     return (
@@ -78,11 +71,7 @@ export default function MessageDetailsScreen() {
   const displayName = conversation.isGroup
     ? conversation.title || 'Group chat'
     : profile!.name;
-
-  const saveNotes = (value: string) => {
-    setNotes(value);
-    setConversationNotes(conversation.id, value);
-  };
+  const notes = conversation.notes ?? '';
 
   const confirmBlock = () => {
     Alert.alert(
@@ -226,7 +215,7 @@ export default function MessageDetailsScreen() {
         <Text style={[styles.sectionLabel, { color: colors.blueGrotto }]}>Notes</Text>
         <TextInput
           value={notes}
-          onChangeText={saveNotes}
+          onChangeText={(value) => setConversationNotes(conversation.id, value)}
           placeholder="Write private notes about this chat…"
           placeholderTextColor={`${colors.blueIris}88`}
           multiline
@@ -256,8 +245,8 @@ export default function MessageDetailsScreen() {
               onPress={confirmBlock}
               style={[styles.actionBtn, { backgroundColor: danger }]}
             >
-              <Ionicons name="ban" size={20} color="#fff" />
-              <Text style={[styles.actionLabel, { color: '#fff' }]}>Block</Text>
+              <Ionicons name="ban" size={20} color={colors.ivory} />
+              <Text style={[styles.actionLabel, { color: colors.ivory }]}>Block</Text>
             </Pressable>
           )}
 

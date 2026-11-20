@@ -17,7 +17,7 @@ export function SwipeTutorialOverlay({ onDismiss }: SwipeTutorialOverlayProps) {
 
   return (
     <Pressable
-      style={[styles.overlay, { backgroundColor: 'rgba(80, 79, 128, 0.72)' }]}
+      style={[styles.overlay, { backgroundColor: `${colors.blueIris}B8` }]}
       onPress={onDismiss}
       accessibilityRole="button"
     >

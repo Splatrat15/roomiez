@@ -5,7 +5,6 @@ import {
   formatPreview,
   getLastMessage,
   groupTitleFromNames,
-  seedConversations,
 } from '@/data/messages';
 
 export type ChatMessage = {
@@ -28,6 +27,11 @@ export type Conversation = {
 
 type MessagesContextValue = {
   conversations: Conversation[];
+  likedProfileIds: number[];
+  matchedProfiles: typeof profiles;
+  isLiked: (profileId: number) => boolean;
+  likeProfile: (profileId: number) => void;
+  unlikeProfile: (profileId: number) => void;
   getConversation: (id: string | undefined) => Conversation | undefined;
   createGroupChat: (memberIds: number[], title?: string) => Conversation;
   appendMessage: (conversationId: string, message: ChatMessage) => void;
@@ -40,20 +44,6 @@ type MessagesContextValue = {
 
 const MessagesContext = createContext<MessagesContextValue | null>(null);
 
-function cloneSeed(): Conversation[] {
-  return seedConversations.map((conversation) => ({
-    ...conversation,
-    notes: '',
-    blocked: false,
-    reported: false,
-    messages: conversation.messages.map((message) => ({
-      id: message.id,
-      sender: message.sender === 'me' ? 'me' : 'them',
-      text: message.text,
-    })),
-  }));
-}
-
 function updateConversation(
   current: Conversation[],
   conversationId: string,
@@ -64,16 +54,72 @@ function updateConversation(
   );
 }
 
+function starterConversation(profileId: number): Conversation | null {
+  const profile = profiles.find((person) => person.id === profileId);
+  if (!profile) {
+    return null;
+  }
+
+  const first = profile.name.split(' ')[0] ?? profile.name;
+  return {
+    id: String(profileId),
+    profileId,
+    notes: '',
+    blocked: false,
+    reported: false,
+    messages: [
+      {
+        id: `${profileId}-match`,
+        sender: 'them',
+        text: `You matched with ${first}. Say hi!`,
+      },
+    ],
+  };
+}
+
 export function MessagesProvider({ children }: { children: ReactNode }) {
-  const [conversations, setConversations] = useState<Conversation[]>(() => cloneSeed());
+  const [likedProfileIds, setLikedProfileIds] = useState<number[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  const matchedProfiles = useMemo(
+    () => profiles.filter((person) => likedProfileIds.includes(person.id)),
+    [likedProfileIds],
+  );
 
   const value = useMemo<MessagesContextValue>(
     () => ({
       conversations,
+      likedProfileIds,
+      matchedProfiles,
+      isLiked: (profileId) => likedProfileIds.includes(profileId),
+      likeProfile: (profileId) => {
+        setLikedProfileIds((current) =>
+          current.includes(profileId) ? current : [...current, profileId],
+        );
+        setConversations((current) => {
+          if (current.some((conversation) => conversation.profileId === profileId && !conversation.isGroup)) {
+            return current;
+          }
+          const created = starterConversation(profileId);
+          return created ? [created, ...current] : current;
+        });
+      },
+      unlikeProfile: (profileId) => {
+        setLikedProfileIds((current) => current.filter((id) => id !== profileId));
+        setConversations((current) =>
+          current.filter((conversation) => {
+            if (conversation.isGroup) {
+              return true;
+            }
+            return conversation.profileId !== profileId;
+          }),
+        );
+      },
       getConversation: (id) =>
         conversations.find((conversation) => String(conversation.id) === String(id)),
       createGroupChat: (memberIds, title) => {
-        const members = memberIds
+        const allowed = memberIds.filter((id) => likedProfileIds.includes(id));
+        const members = allowed
           .map((id) => profiles.find((person) => person.id === id))
           .filter(Boolean);
         const names = members.map((person) => person!.name.split(' ')[0] ?? person!.name);
@@ -81,7 +127,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           id: `group-${Date.now()}`,
           isGroup: true,
           title: title?.trim() || groupTitleFromNames(names),
-          memberIds: [...memberIds],
+          memberIds: [...allowed],
           notes: '',
           blocked: false,
           reported: false,
@@ -89,7 +135,7 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
             {
               id: `group-start-${Date.now()}`,
               sender: 'them',
-              text: `Group created with ${names.join(', ')}.`,
+              text: `Group created with ${names.join(', ') || 'no one yet'}.`,
             },
           ],
         };
@@ -151,12 +197,20 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
         );
       },
       deleteConversation: (conversationId) => {
-        setConversations((current) =>
-          current.filter((conversation) => String(conversation.id) !== String(conversationId)),
-        );
+        setConversations((current) => {
+          const target = current.find(
+            (conversation) => String(conversation.id) === String(conversationId),
+          );
+          if (target && !target.isGroup && target.profileId != null) {
+            setLikedProfileIds((ids) => ids.filter((id) => id !== target.profileId));
+          }
+          return current.filter(
+            (conversation) => String(conversation.id) !== String(conversationId),
+          );
+        });
       },
     }),
-    [conversations],
+    [conversations, likedProfileIds, matchedProfiles],
   );
 
   return <MessagesContext.Provider value={value}>{children}</MessagesContext.Provider>;

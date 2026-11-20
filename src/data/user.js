@@ -3,14 +3,14 @@
  * Photo: assets/images/robert.jpg
  *
  * about = Part 1 questionnaire answers (visible)
- * education = school / district / building (visible)
+ * education = school / district / building / year (visible)
  * hobbies = Part 1 (visible)
  * roommateLikes / roommateDislikes = Part 2 matching tags
  * roommateLikesPrivate / roommateDislikesPrivate = per-list visibility
  */
 export const defaultEducation = {
-  school: 'ASU Tempe',
-  district: 'Barrett',
+  school: 'ASU',
+  district: 'Tempe',
   building: 'Barrett',
   year: 'Freshman',
 };
@@ -36,18 +36,12 @@ export const defaultAbout = {
 
 export const currentUser = {
   id: 'me',
-  username: 'robert.thiel',
   name: 'Robert Thiel',
   age: 18,
   gender: 'Man',
   description:
     'Just graduated and heading into freshman year. Looking for a chill roommate — early classes, clean kitchen, weekend coffee runs. Fair on rent and groceries.',
   image: require('../../assets/images/robert.jpg'),
-  stats: {
-    matches: 12,
-    likes: 48,
-    chats: 3,
-  },
   education: { ...defaultEducation },
   hobbies: ['Coffee runs', 'Gym', 'Studying'],
   about: { ...defaultAbout },

@@ -126,9 +126,12 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const { user } = useUser();
+  const brandSize = useFluidSize(16);
   const nameSize = useFluidSize(32);
   const tagSize = useFluidSize(12);
   const bodySize = useFluidSize(15);
+  const settingsIcon = useFluidSize(22);
+  const settingsHit = useFluidSize(40);
 
   const top = Platform.OS === 'web' ? 0 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
@@ -164,15 +167,25 @@ export default function ProfileScreen() {
       ]}
     >
       <View style={styles.topBar}>
-        <Text style={[styles.brand, { color: colors.blueGrotto }]}>roomiez</Text>
+        <Text style={[styles.brand, { fontSize: brandSize, color: colors.blueGrotto }]}>
+          roomiez
+        </Text>
         <Pressable
           onPress={() => router.push('/settings')}
-          style={[styles.settingsButton, { backgroundColor: colors.blueIris }]}
+          style={[
+            styles.settingsButton,
+            {
+              width: settingsHit,
+              height: settingsHit,
+              borderRadius: settingsHit / 2,
+              backgroundColor: colors.blueIris,
+            },
+          ]}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="Open settings"
         >
-          <Ionicons name="settings-outline" size={22} color={colors.ivory} />
+          <Ionicons name="settings-outline" size={settingsIcon} color={colors.ivory} />
         </Pressable>
       </View>
 
@@ -227,16 +240,6 @@ export default function ProfileScreen() {
               {about.expressYourself.trim() || user.description}
             </Text>
           </View>
-          {about.oneWordDescribeMe.trim() ? (
-            <View style={[styles.bioCard, { backgroundColor: colors.ivory }]}>
-              <Text style={[styles.tileLabel, { color: colors.blueGrotto }]}>
-                One word to describe me
-              </Text>
-              <Text style={[styles.oneWord, { color: colors.blueIris }]}>
-                {about.oneWordDescribeMe.trim()}
-              </Text>
-            </View>
-          ) : null}
         </ProfileSection>
 
         <ProfileSection title="Education" colors={colors} onEdit={() => openQuiz('education')}>
@@ -331,13 +334,9 @@ const styles = StyleSheet.create({
     ...reset,
     fontWeight: '700',
     letterSpacing: 2,
-    fontSize: 16,
   },
   settingsButton: {
     ...reset,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -430,12 +429,6 @@ const styles = StyleSheet.create({
     ...reset,
     lineHeight: 22,
   },
-  oneWord: {
-    ...reset,
-    fontSize: 22,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-  },
   tileGrid: {
     ...reset,
     flexDirection: 'row',
@@ -469,7 +462,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '600',
   },
-chipBlock: {
+  chipBlock: {
     ...reset,
     gap: 10,
   },

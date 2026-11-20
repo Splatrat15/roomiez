@@ -72,7 +72,7 @@ function ChipRow({ items, colors }: { items: string[]; colors: ThemeColors }) {
 export default function RoommateDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const nameSize = useFluidSize(30);
   const tagSize = useFluidSize(12);
   const bodySize = useFluidSize(15);
@@ -83,7 +83,7 @@ export default function RoommateDetailScreen() {
   const bottom = Platform.OS === 'web' ? 16 : Math.max(insets.bottom, 16);
 
   const profile = profiles.find((person) => String(person.id) === String(id));
-  const overlayText = isDark ? '#E4E3D0' : colors.ivory;
+  const overlayText = '#E4E3D0';
 
   if (!profile) {
     return (
@@ -170,16 +170,6 @@ export default function RoommateDetailScreen() {
               {about.expressYourself.trim() || profile.description}
             </Text>
           </View>
-          {about.oneWordDescribeMe.trim() ? (
-            <View style={[styles.bioCard, { backgroundColor: colors.ivory }]}>
-              <Text style={[styles.tileLabel, { color: colors.blueGrotto }]}>
-                One word to describe me
-              </Text>
-              <Text style={[styles.oneWord, { color: colors.blueIris }]}>
-                {about.oneWordDescribeMe.trim()}
-              </Text>
-            </View>
-          ) : null}
         </Section>
 
         <Section title="Education" colors={colors}>
@@ -335,12 +325,6 @@ const styles = StyleSheet.create({
   bio: {
     ...reset,
     lineHeight: 22,
-  },
-  oneWord: {
-    ...reset,
-    fontSize: 22,
-    fontWeight: '700',
-    letterSpacing: 0.4,
   },
   tileGrid: {
     ...reset,

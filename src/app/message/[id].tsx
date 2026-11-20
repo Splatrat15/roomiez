@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -26,13 +26,15 @@ function firstName(fullName: string) {
 export default function MessageThreadScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const { getConversation, appendMessage } = useMessages();
   const scrollRef = useRef<any>(null);
+  const messageSeq = useRef(0);
   const nameSize = useFluidSize(17);
   const bodySize = useFluidSize(16);
 
   const conversation = getConversation(id);
+  const messages = conversation?.messages ?? [];
   const profile = conversation?.isGroup
     ? null
     : profiles.find((person) => person.id === conversation?.profileId);
@@ -43,17 +45,12 @@ export default function MessageThreadScreen() {
     : [];
 
   const [draft, setDraft] = useState('');
-  const [messages, setMessages] = useState<ChatMessage[]>(() => conversation?.messages ?? []);
-
-  useEffect(() => {
-    setMessages(conversation?.messages ?? []);
-  }, [conversation]);
 
   const top = Platform.OS === 'web' ? 12 : insets.top;
   const left = Platform.OS === 'web' ? 0 : insets.left;
   const right = Platform.OS === 'web' ? 0 : insets.right;
   const bottom = Platform.OS === 'web' ? 10 : Math.max(insets.bottom, 10);
-  const mineText = isDark ? '#14141C' : colors.ivory;
+  const mineText = colors.ivory;
 
   const headerTitle = conversation?.isGroup
     ? conversation.title || 'Group chat'
@@ -88,13 +85,13 @@ export default function MessageThreadScreen() {
       return;
     }
 
+    messageSeq.current += 1;
     const message: ChatMessage = {
-      id: `${conversation.id}-${Date.now()}`,
+      id: `${conversation.id}-${messageSeq.current}`,
       sender: 'me',
       text,
     };
 
-    setMessages((current) => [...current, message]);
     appendMessage(conversation.id, message);
     setDraft('');
     requestAnimationFrame(() => {
@@ -169,18 +166,14 @@ export default function MessageThreadScreen() {
                 {headerTitle}
               </Text>
               {conversation.blocked ? (
-                <Ionicons name="ban" size={16} color="#C23B4B" />
+                <Ionicons name="ban" size={16} color={colors.rejectRedDeep} />
               ) : null}
             </View>
             {conversation.isGroup ? (
               <Text style={[styles.headerSub, { color: colors.blueGrotto }]} numberOfLines={1}>
                 {groupMembers.map((person) => firstName(person!.name)).join(', ')}
               </Text>
-            ) : (
-              <Text style={[styles.headerSub, { color: colors.blueGrotto }]} numberOfLines={1}>
-                Tap for notes & options
-              </Text>
-            )}
+            ) : null}
           </View>
           <Ionicons name="chevron-forward" size={18} color={`${colors.blueIris}88`} />
         </Pressable>
@@ -226,9 +219,9 @@ export default function MessageThreadScreen() {
 
       {conversation.blocked ? (
         <View style={[styles.blockedBar, { paddingBottom: bottom, backgroundColor: colors.surface }]}>
-          <Ionicons name="ban" size={18} color="#C23B4B" />
+          <Ionicons name="ban" size={18} color={colors.rejectRedDeep} />
           <Text style={[styles.blockedText, { color: colors.blueIris }]}>
-            You blocked this chat. Unblock from their profile to message again.
+            Blocked — unblock from their profile to message again.
           </Text>
         </View>
       ) : (
