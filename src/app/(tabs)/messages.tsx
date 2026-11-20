@@ -92,11 +92,15 @@ export default function MessagesScreen() {
           }
 
           const { conversation, title, preview, avatars, isGroup } = thread;
+          const blocked = Boolean(conversation.blocked);
+          const muted = blocked ? 0.45 : 1;
+          const nameColor = blocked ? `${colors.blueIris}99` : colors.blueIris;
+          const previewColor = blocked ? `${colors.blueGrotto}88` : colors.blueGrotto;
 
           return (
             <Pressable
               key={conversation.id}
-              style={styles.row}
+              style={[styles.row, blocked && styles.rowBlocked]}
               onPress={() =>
                 router.push({
                   pathname: '/message/[id]',
@@ -104,52 +108,57 @@ export default function MessagesScreen() {
                 })
               }
             >
-              {isGroup ? (
-                <View style={styles.groupAvatar}>
-                  {avatars[0] ? (
-                    <Image
-                      source={avatars[0]}
-                      style={[styles.groupAvatarMain, { backgroundColor: colors.blueIris }]}
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.groupAvatarMain,
-                        styles.groupFallback,
-                        { backgroundColor: colors.blueGrotto },
-                      ]}
-                    >
-                      <Ionicons name="people" size={22} color={colors.ivory} />
-                    </View>
-                  )}
-                  {avatars[1] ? (
-                    <Image
-                      source={avatars[1]}
-                      style={[
-                        styles.groupAvatarSecondary,
-                        { backgroundColor: colors.blueIris, borderColor: colors.ivory },
-                      ]}
-                    />
-                  ) : null}
+              <View style={{ opacity: muted }}>
+                {isGroup ? (
+                  <View style={styles.groupAvatar}>
+                    {avatars[0] ? (
+                      <Image
+                        source={avatars[0]}
+                        style={[styles.groupAvatarMain, { backgroundColor: colors.blueIris }]}
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          styles.groupAvatarMain,
+                          styles.groupFallback,
+                          { backgroundColor: colors.blueGrotto },
+                        ]}
+                      >
+                        <Ionicons name="people" size={22} color={colors.ivory} />
+                      </View>
+                    )}
+                    {avatars[1] ? (
+                      <Image
+                        source={avatars[1]}
+                        style={[
+                          styles.groupAvatarSecondary,
+                          { backgroundColor: colors.blueIris, borderColor: colors.ivory },
+                        ]}
+                      />
+                    ) : null}
+                  </View>
+                ) : (
+                  <Image
+                    source={avatars[0]}
+                    style={[styles.avatar, { backgroundColor: colors.blueIris }]}
+                  />
+                )}
+              </View>
+              <View style={[styles.copy, { opacity: muted }]}>
+                <View style={styles.nameRow}>
+                  <Text
+                    style={[styles.name, { fontSize: nameSize, color: nameColor }]}
+                    numberOfLines={1}
+                  >
+                    {title}
+                  </Text>
+                  {blocked ? <Ionicons name="ban" size={16} color="#C23B4B" /> : null}
                 </View>
-              ) : (
-                <Image
-                  source={avatars[0]}
-                  style={[styles.avatar, { backgroundColor: colors.blueIris }]}
-                />
-              )}
-              <View style={styles.copy}>
                 <Text
-                  style={[styles.name, { fontSize: nameSize, color: colors.blueIris }]}
+                  style={[styles.preview, { fontSize: previewSize, color: previewColor }]}
                   numberOfLines={1}
                 >
-                  {title}
-                </Text>
-                <Text
-                  style={[styles.preview, { fontSize: previewSize, color: colors.blueGrotto }]}
-                  numberOfLines={1}
-                >
-                  {preview}
+                  {blocked ? 'Blocked' : preview}
                 </Text>
               </View>
             </Pressable>
@@ -198,6 +207,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  rowBlocked: {
+    backgroundColor: 'rgba(0,0,0,0.04)',
+  },
   avatar: {
     ...reset,
     width: 56,
@@ -237,8 +249,15 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
+  nameRow: {
+    ...reset,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   name: {
     ...reset,
+    flexShrink: 1,
     fontWeight: '700',
   },
   preview: {

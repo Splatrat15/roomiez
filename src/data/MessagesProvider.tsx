@@ -21,6 +21,9 @@ export type Conversation = {
   title?: string;
   memberIds?: number[];
   messages: ChatMessage[];
+  notes?: string;
+  blocked?: boolean;
+  reported?: boolean;
 };
 
 type MessagesContextValue = {
@@ -28,6 +31,10 @@ type MessagesContextValue = {
   getConversation: (id: string | undefined) => Conversation | undefined;
   createGroupChat: (memberIds: number[], title?: string) => Conversation;
   appendMessage: (conversationId: string, message: ChatMessage) => void;
+  setConversationNotes: (conversationId: string, notes: string) => void;
+  blockConversation: (conversationId: string) => void;
+  unblockConversation: (conversationId: string) => void;
+  reportConversation: (conversationId: string) => void;
 };
 
 const MessagesContext = createContext<MessagesContextValue | null>(null);
@@ -35,12 +42,25 @@ const MessagesContext = createContext<MessagesContextValue | null>(null);
 function cloneSeed(): Conversation[] {
   return seedConversations.map((conversation) => ({
     ...conversation,
+    notes: '',
+    blocked: false,
+    reported: false,
     messages: conversation.messages.map((message) => ({
       id: message.id,
       sender: message.sender === 'me' ? 'me' : 'them',
       text: message.text,
     })),
   }));
+}
+
+function updateConversation(
+  current: Conversation[],
+  conversationId: string,
+  updater: (conversation: Conversation) => Conversation,
+) {
+  return current.map((conversation) =>
+    String(conversation.id) === String(conversationId) ? updater(conversation) : conversation,
+  );
 }
 
 export function MessagesProvider({ children }: { children: ReactNode }) {
@@ -61,6 +81,9 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
           isGroup: true,
           title: title?.trim() || groupTitleFromNames(names),
           memberIds: [...memberIds],
+          notes: '',
+          blocked: false,
+          reported: false,
           messages: [
             {
               id: `group-start-${Date.now()}`,
@@ -82,6 +105,10 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
             return current;
           }
 
+          if (current[index].blocked) {
+            return current;
+          }
+
           const updated: Conversation = {
             ...current[index],
             messages: [...current[index].messages, message],
@@ -89,6 +116,38 @@ export function MessagesProvider({ children }: { children: ReactNode }) {
 
           return [updated, ...current.filter((_, i) => i !== index)];
         });
+      },
+      setConversationNotes: (conversationId, notes) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            notes,
+          })),
+        );
+      },
+      blockConversation: (conversationId) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            blocked: true,
+          })),
+        );
+      },
+      unblockConversation: (conversationId) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            blocked: false,
+          })),
+        );
+      },
+      reportConversation: (conversationId) => {
+        setConversations((current) =>
+          updateConversation(current, conversationId, (conversation) => ({
+            ...conversation,
+            reported: true,
+          })),
+        );
       },
     }),
     [conversations],

@@ -25,6 +25,7 @@ function RootShell() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="roommate/[id]" />
             <Stack.Screen name="message/[id]" />
+            <Stack.Screen name="message-details/[id]" />
             <Stack.Screen name="new-group" />
             <Stack.Screen name="settings" />
             <Stack.Screen name="privacy" />

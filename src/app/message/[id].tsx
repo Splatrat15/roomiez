@@ -75,9 +75,16 @@ export default function MessageThreadScreen() {
     );
   }
 
+  const openDetails = () => {
+    router.push({
+      pathname: '/message-details/[id]',
+      params: { id: conversation.id },
+    });
+  };
+
   const send = () => {
     const text = draft.trim();
-    if (!text) {
+    if (!text || conversation.blocked) {
       return;
     }
 
@@ -112,53 +119,71 @@ export default function MessageThreadScreen() {
         <Pressable style={styles.back} onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="chevron-back" size={28} color={colors.blueGrotto} />
         </Pressable>
-        {conversation.isGroup ? (
-          <View style={styles.groupHeaderAvatar}>
-            {groupMembers[0] ? (
-              <Image
-                source={groupMembers[0].image}
-                style={[styles.headerAvatarSmall, { backgroundColor: colors.blueIris }]}
-              />
-            ) : (
-              <View
-                style={[
-                  styles.headerAvatar,
-                  styles.groupFallback,
-                  { backgroundColor: colors.blueGrotto },
-                ]}
-              >
-                <Ionicons name="people" size={18} color={colors.ivory} />
-              </View>
-            )}
-            {groupMembers[1] ? (
-              <Image
-                source={groupMembers[1].image}
-                style={[
-                  styles.headerAvatarOverlap,
-                  { backgroundColor: colors.blueIris, borderColor: colors.ivory },
-                ]}
-              />
-            ) : null}
-          </View>
-        ) : (
-          <Image
-            source={profile!.image}
-            style={[styles.headerAvatar, { backgroundColor: colors.blueIris }]}
-          />
-        )}
-        <View style={styles.headerCopy}>
-          <Text
-            style={[styles.headerName, { fontSize: nameSize, color: colors.blueIris }]}
-            numberOfLines={1}
-          >
-            {headerTitle}
-          </Text>
+        <Pressable style={styles.headerTap} onPress={openDetails}>
           {conversation.isGroup ? (
-            <Text style={[styles.headerSub, { color: colors.blueGrotto }]} numberOfLines={1}>
-              {groupMembers.map((person) => firstName(person!.name)).join(', ')}
-            </Text>
-          ) : null}
-        </View>
+            <View style={styles.groupHeaderAvatar}>
+              {groupMembers[0] ? (
+                <Image
+                  source={groupMembers[0].image}
+                  style={[styles.headerAvatarSmall, { backgroundColor: colors.blueIris }]}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.headerAvatar,
+                    styles.groupFallback,
+                    { backgroundColor: colors.blueGrotto },
+                  ]}
+                >
+                  <Ionicons name="people" size={18} color={colors.ivory} />
+                </View>
+              )}
+              {groupMembers[1] ? (
+                <Image
+                  source={groupMembers[1].image}
+                  style={[
+                    styles.headerAvatarOverlap,
+                    { backgroundColor: colors.blueIris, borderColor: colors.ivory },
+                  ]}
+                />
+              ) : null}
+            </View>
+          ) : (
+            <Image
+              source={profile!.image}
+              style={[styles.headerAvatar, { backgroundColor: colors.blueIris }]}
+            />
+          )}
+          <View style={styles.headerCopy}>
+            <View style={styles.headerNameRow}>
+              <Text
+                style={[
+                  styles.headerName,
+                  {
+                    fontSize: nameSize,
+                    color: conversation.blocked ? `${colors.blueIris}88` : colors.blueIris,
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {headerTitle}
+              </Text>
+              {conversation.blocked ? (
+                <Ionicons name="ban" size={16} color="#C23B4B" />
+              ) : null}
+            </View>
+            {conversation.isGroup ? (
+              <Text style={[styles.headerSub, { color: colors.blueGrotto }]} numberOfLines={1}>
+                {groupMembers.map((person) => firstName(person!.name)).join(', ')}
+              </Text>
+            ) : (
+              <Text style={[styles.headerSub, { color: colors.blueGrotto }]} numberOfLines={1}>
+                Tap for notes & options
+              </Text>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={`${colors.blueIris}88`} />
+        </Pressable>
       </View>
 
       <ScrollView
@@ -199,33 +224,42 @@ export default function MessageThreadScreen() {
         })}
       </ScrollView>
 
-      <View style={[styles.composer, { paddingBottom: bottom }]}>
-        <TextInput
-          value={draft}
-          onChangeText={setDraft}
-          placeholder="iMessage"
-          placeholderTextColor={`${colors.blueIris}99`}
-          style={[
-            styles.input,
-            {
-              fontSize: bodySize,
-              backgroundColor: colors.surface,
-              color: colors.blueIris,
-            },
-          ]}
-          multiline
-          onSubmitEditing={send}
-          blurOnSubmit={false}
-        />
-        <Pressable
-          onPress={send}
-          style={[styles.send, !draft.trim() && styles.sendDisabled]}
-          disabled={!draft.trim()}
-          hitSlop={8}
-        >
-          <Ionicons name="arrow-up-circle" size={34} color={colors.blueGrotto} />
-        </Pressable>
-      </View>
+      {conversation.blocked ? (
+        <View style={[styles.blockedBar, { paddingBottom: bottom, backgroundColor: colors.surface }]}>
+          <Ionicons name="ban" size={18} color="#C23B4B" />
+          <Text style={[styles.blockedText, { color: colors.blueIris }]}>
+            You blocked this chat. Unblock from their profile to message again.
+          </Text>
+        </View>
+      ) : (
+        <View style={[styles.composer, { paddingBottom: bottom }]}>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder="iMessage"
+            placeholderTextColor={`${colors.blueIris}99`}
+            style={[
+              styles.input,
+              {
+                fontSize: bodySize,
+                backgroundColor: colors.surface,
+                color: colors.blueIris,
+              },
+            ]}
+            multiline
+            onSubmitEditing={send}
+            blurOnSubmit={false}
+          />
+          <Pressable
+            onPress={send}
+            style={[styles.send, !draft.trim() && styles.sendDisabled]}
+            disabled={!draft.trim()}
+            hitSlop={8}
+          >
+            <Ionicons name="arrow-up-circle" size={34} color={colors.blueGrotto} />
+          </Pressable>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -254,6 +288,14 @@ const styles = StyleSheet.create({
     ...reset,
     fontWeight: '600',
     fontSize: 16,
+  },
+  headerTap: {
+    ...reset,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingRight: 8,
   },
   headerAvatar: {
     ...reset,
@@ -294,14 +336,35 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  headerNameRow: {
+    ...reset,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   headerName: {
     ...reset,
+    flexShrink: 1,
     fontWeight: '700',
   },
   headerSub: {
     ...reset,
     fontSize: 12,
     opacity: 0.9,
+  },
+  blockedBar: {
+    ...reset,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  blockedText: {
+    ...reset,
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
   },
   thread: {
     ...reset,
