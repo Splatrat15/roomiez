@@ -22,6 +22,9 @@ export type SwipeProfile = {
   gender: string;
   description: string;
   image: number;
+  about?: {
+    oneWordDescribeMe?: string;
+  };
 };
 
 type SwipeCardProps = {
@@ -38,12 +41,14 @@ export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
   const width = Math.min(windowWidth, layout.frameMaxWidth);
   const cardWidth = Math.round(width * 0.84);
   const cardHeight = Math.round(cardWidth * (4 / 3));
-  const titleSize = fluidSize(28, width);
-  const metaSize = fluidSize(14, width);
+  const titleSize = fluidSize(30, width);
+  const tagSize = fluidSize(12, width);
   const bodySize = fluidSize(13, width);
   const iconSize = fluidSize(36, width);
   const firstName = profile.name.split(' ')[0] ?? profile.name;
-  const overlayText = isDark ? '#E4E3D0' : '#E4E3D0';
+  const oneWord = profile.about?.oneWordDescribeMe?.trim() || 'Roommate';
+  const overlayText = '#E4E3D0';
+  const tags = [`${profile.age}`, profile.gender, oneWord];
 
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -154,11 +159,25 @@ export function SwipeCard({ profile, onSwiped, onPress }: SwipeCardProps) {
 
           <View style={styles.copy} pointerEvents="none">
             <Text style={[styles.name, { fontSize: titleSize, color: overlayText }]}>
-              {firstName}, {profile.age}
+              {firstName}
             </Text>
-            <Text style={[styles.meta, { fontSize: metaSize, color: overlayText }]}>
-              {profile.gender}
-            </Text>
+            <View style={styles.tags}>
+              {tags.map((tag) => (
+                <View
+                  key={tag}
+                  style={[
+                    styles.tag,
+                    {
+                      backgroundColor: isDark ? 'rgba(228, 227, 208, 0.18)' : 'rgba(228, 227, 208, 0.22)',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.tagText, { fontSize: tagSize, color: overlayText }]}>
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
             <Text
               style={[styles.description, { fontSize: bodySize, color: overlayText }]}
               numberOfLines={3}
@@ -216,20 +235,31 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     bottom: 18,
-    gap: 3,
+    gap: 10,
   },
   name: {
     ...reset,
     fontWeight: '700',
   },
-  meta: {
+  tags: {
     ...reset,
-    fontWeight: '600',
-    opacity: 0.92,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  tag: {
+    ...reset,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  tagText: {
+    ...reset,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   description: {
     ...reset,
-    marginTop: 4,
     lineHeight: 18,
     opacity: 0.95,
   },
