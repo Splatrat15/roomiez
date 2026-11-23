@@ -89,11 +89,13 @@ function ThreadRow({
       overshootRight={false}
       friction={2}
       rightThreshold={40}
+      childrenContainerStyle={{ backgroundColor: blocked ? colors.surface : colors.ivory }}
     >
       <Pressable
         style={[
           styles.row,
-          { backgroundColor: blocked ? `${colors.blueIris}12` : colors.ivory },
+          // Must stay opaque so the swipe Delete action never peeks through.
+          { backgroundColor: blocked ? colors.surface : colors.ivory },
         ]}
         onPress={onOpen}
       >

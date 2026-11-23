@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BrandLogo } from '@/components/BrandLogo';
 import { useUser } from '@/data/UserProvider';
 import { useTheme } from '@/theme/ThemeProvider';
 import { reset, useFluidSize, type ThemeColors } from '@/theme/main';
@@ -126,7 +127,6 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useTheme();
   const { user } = useUser();
-  const brandSize = useFluidSize(16);
   const nameSize = useFluidSize(32);
   const tagSize = useFluidSize(12);
   const bodySize = useFluidSize(15);
@@ -167,9 +167,7 @@ export default function ProfileScreen() {
       ]}
     >
       <View style={styles.topBar}>
-        <Text style={[styles.brand, { fontSize: brandSize, color: colors.blueGrotto }]}>
-          roomiez
-        </Text>
+        <BrandLogo height={40} />
         <Pressable
           onPress={() => router.push('/settings')}
           style={[
@@ -329,11 +327,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 8,
-  },
-  brand: {
-    ...reset,
-    fontWeight: '700',
-    letterSpacing: 2,
   },
   settingsButton: {
     ...reset,
