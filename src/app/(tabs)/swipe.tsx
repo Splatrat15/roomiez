@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BrandLogo } from '@/components/BrandLogo';
 import { SwipeCard, type SwipeProfile } from '@/components/SwipeCard';
 import { SwipeTutorialOverlay } from '@/components/SwipeTutorialOverlay';
 import { profiles } from '@/data/data';
@@ -35,7 +36,6 @@ export default function SwipeScreen() {
   const [index, setIndex] = useState(0);
   const [history, setHistory] = useState<SwipeHistoryEntry[]>([]);
   const [showTutorial, setShowTutorial] = useState(!swipeTutorialSeenThisSession);
-  const titleSize = useFluidSize(18);
   const undoSize = useFluidSize(13);
   const emptySize = useFluidSize(22);
   const canUndo = history.length > 0;
@@ -86,9 +86,9 @@ export default function SwipeScreen() {
         ) : (
           <View style={styles.undoPlaceholder} />
         )}
-        <Text style={[styles.brand, { fontSize: titleSize, color: colors.blueGrotto }]}>
-          roomiez
-        </Text>
+        <View style={styles.brandSlot}>
+          <BrandLogo height={40} />
+        </View>
         <View style={styles.undoPlaceholder} />
       </View>
 
@@ -178,12 +178,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.3,
   },
-  brand: {
+  brandSlot: {
     ...reset,
     flex: 1,
-    fontWeight: '700',
-    letterSpacing: 2,
-    textAlign: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   empty: {
     ...reset,
